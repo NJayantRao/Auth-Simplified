@@ -1,0 +1,13 @@
+{
+  "name": "auth-system",
+  "version": "1.0.0",
+  "description": "a secure auth system",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run dev --prefix client && npm run dev --prefix server"
+  },
+  "author": "Jayant N",
+  "license": "ISC"
+}
