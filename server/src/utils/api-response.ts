@@ -1,15 +1,15 @@
 class ApiResponse<T> {
   statusCode: number;
-  message: string;
   success: boolean;
+  message: string;
   data?: T | undefined;
 
   constructor(statusCode: number, message: string, data?: T) {
     this.statusCode = statusCode;
-    this.message = message;
     this.success = statusCode < 400;
+    this.message = message;
     this.data = data;
   }
 }
 
-export default ApiResponse
+export default ApiResponse;
