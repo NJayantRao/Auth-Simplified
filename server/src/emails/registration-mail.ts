@@ -17,7 +17,7 @@ export const registrationMail = async (
       action: {
         instructions: "Click below to verify your account:",
         button: {
-          color: "#0B3D91", // 🔵 Nagrik Setu blue
+          color: "#0B3D91",
           text: "Verify My Account",
           link: verifyLink,
         },

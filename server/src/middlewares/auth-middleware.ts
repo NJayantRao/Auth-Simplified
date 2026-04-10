@@ -11,7 +11,10 @@ const authMiddleware = async (req: any, res: any, next: any) => {
     if (!token) {
       return res.status(401).json(new ApiError(401, "Unauthorized request"));
     }
-
+    console.log(
+      "Secret used to verify:",
+      JSON.stringify(ENV.ACCESS_TOKEN_SECRET)
+    );
     const decoded = jwt.verify(token, ENV.ACCESS_TOKEN_SECRET);
 
     req.user = decoded;
