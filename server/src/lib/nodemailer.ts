@@ -15,9 +15,9 @@ const transporter = nodemailer.createTransport({
 const connectToTransporter = async () => {
   try {
     await transporter.verify();
-    console.log("Server is ready to take our messages");
+    console.log("Transporter connected successfully...");
   } catch (err) {
-    console.error("Verification failed:", err);
+    console.error("Failed to connect to transporter:", err);
   }
 };
 

@@ -10,6 +10,11 @@ import ApiResponse from "../utils/api-response.js";
 import AsyncHandler from "../utils/async-handler.js";
 import { sendRegistrationMail } from "../utils/send-mails.js";
 
+/**
+ * @route POST /api/v1/auth/register
+ * @description controller to register a new user
+ * @access public
+ */
 export const registerUser = AsyncHandler(async (req: any, res: any) => {
   // get data from request body
   const { name, email, password } = req.body;
