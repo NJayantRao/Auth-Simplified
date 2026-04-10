@@ -1,26 +1,46 @@
 import { mailGenerator } from "../lib/mailgen.js";
 
-const email = {
-  body: {
-    name: "John Appleseed",
-    intro: "Welcome to Mailgen! We're very excited to have you on board.",
-    action: {
-      instructions: "To get started with Mailgen, please click here:",
-      button: {
-        color: "#22BC66", // Optional action button color
-        text: "Confirm your account",
-        link: "https://mailgen.js/confirm?s=d9729feb74992cc3482b350163a1a010",
+export const registrationMail = async (
+  username: string,
+  verifyLink: string
+) => {
+  const email = {
+    body: {
+      name: username,
+
+      intro: [
+        "Welcome to Auth System 👋",
+        "Your account has been successfully created.",
+        "Please verify your email to activate your account and get started.",
+      ],
+
+      action: {
+        instructions: "Click below to verify your account:",
+        button: {
+          color: "#0B3D91", // 🔵 Nagrik Setu blue
+          text: "Verify My Account",
+          link: verifyLink,
+        },
       },
+
+      outro: [
+        "What you can do after verification:",
+        "",
+        "✔ Securely access your account",
+        "✔ Use protected features",
+        "✔ Manage your profile and settings",
+        "",
+        "If you didn’t create this account, you can safely ignore this email.",
+        "",
+        "Need help? Just reply to this email — we’re here for you 💙",
+      ],
     },
-    outro:
-      "Need help, or have questions? Just reply to this email, we'd love to help.",
-  },
+  };
+
+  // Generate an HTML email with the provided contents
+  const html = mailGenerator.generate(email);
+
+  // Generate the plaintext version of the e-mail (for clients that do not support HTML)
+  const plainText = mailGenerator.generatePlaintext(email);
+  return { html, plainText };
 };
-
-// Generate an HTML email with the provided contents
-const emailBody = mailGenerator.generate(email);
-
-// Generate the plaintext version of the e-mail (for clients that do not support HTML)
-const emailText = mailGenerator.generatePlaintext(email);
-
-export { emailBody, emailText };

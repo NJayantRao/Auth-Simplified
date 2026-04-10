@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
     user: ENV.EMAIL_USER,
     clientId: ENV.CLIENT_ID,
     clientSecret: ENV.CLIENT_SECRET,
-    refreshToken: ENV.REFRESH_TOKEN,
+    refreshToken: ENV.GMAIL_REFRESH_TOKEN,
   },
 });
 

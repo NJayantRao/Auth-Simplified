@@ -1,13 +1,19 @@
+import { registrationMail } from "../emails/registration-mail.js";
 import { transporter } from "../lib/nodemailer.js";
 
-const sendRegistrationMail = async () => {
+const sendRegistrationMail = async (
+  username: string,
+  email: string,
+  verifyLink: string
+) => {
   try {
+    const { html, plainText } = await registrationMail(username, verifyLink);
     const info = await transporter.sendMail({
-      from: '"Example Team" <team@example.com>', // sender address
-      to: "njayantrao@gmail.com", // list of recipients
-      subject: "Hello", // subject line
-      text: "Hello world?", // plain text body
-      html: "<b>Hello world?</b>", // HTML body
+      from: '"Auth System Team" <auth-system@gmail.com>',
+      to: email,
+      subject: "Welcome to Auth System",
+      text: plainText,
+      html: html,
     });
     console.log("Message sent: %s", info.messageId);
   } catch (err) {
