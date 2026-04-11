@@ -146,7 +146,7 @@ export const loginUser = AsyncHandler(async (req: any, res: any) => {
 /**
  * @route POST /api/v1/auth/logout
  * @description controller to login a user
- * @access public
+ * @access private
  */
 export const logoutUser = AsyncHandler(async (req: any, res: any) => {
   const { id } = req.user;

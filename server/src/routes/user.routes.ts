@@ -9,6 +9,6 @@ import {
 const router = express.Router();
 
 router.post("/verify-email", authMiddleware, verifyUserEmail);
-router.post("/profile", authMiddleware, getUserProfile);
+router.get("/profile", authMiddleware, getUserProfile);
 
 export { router as userRouter };
