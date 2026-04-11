@@ -5,6 +5,7 @@ import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "../swagger-output.json" with { type: "json" };
 import cookieParser from "cookie-parser";
 import { rateLimiter } from "./middlewares/rate-limit-middleware.js";
+import { userRouter } from "./routes/user.routes.js";
 
 const app = express();
 
@@ -16,5 +17,6 @@ app.use(rateLimiter);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("", rootRouter);
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/users", userRouter);
 
 export default app;

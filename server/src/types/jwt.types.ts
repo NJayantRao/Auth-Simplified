@@ -1,7 +1,7 @@
-interface Ipayload {
+interface IPayload {
   id: string;
   email: string;
   role: string;
 }
 
-export type { Ipayload };
+export type { IPayload };

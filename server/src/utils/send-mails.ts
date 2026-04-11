@@ -16,7 +16,7 @@ const sendRegistrationMail = async (
       text: plainText,
       html: html,
     });
-    console.log("Message sent: %s", info.messageId);
+    // console.log("Message sent: %s", info.messageId);
   } catch (err) {
     console.error("Error while sending mail:", err);
   }
@@ -36,7 +36,7 @@ const sendVerificationMail = async (
       text: plainText,
       html: html,
     });
-    console.log("Message sent: %s", info.messageId);
+    // console.log("Message sent: %s", info.messageId);
   } catch (err) {
     console.error("Error while sending mail:", err);
   }

@@ -1,19 +1,21 @@
 import express from "express";
 import {
+  loginUser,
+  logoutUser,
   refreshAccessToken,
   registerUser,
   verifyEmail,
-  verifyUserEmail,
 } from "../controllers/auth.controller.js";
 import { validateData } from "../middlewares/zod-validation.js";
-import { registerSchema } from "../validators/register-schema.js";
+import { loginSchema, registerSchema } from "../validators/auth-schema.js";
 import { authMiddleware } from "../middlewares/auth-middleware.js";
 
 const router = express.Router();
 
-router.post("/users/", validateData(registerSchema), registerUser);
+router.post("/register", validateData(registerSchema), registerUser);
+router.post("/login", validateData(loginSchema), loginUser);
+router.post("/logout", authMiddleware, logoutUser);
 router.get("/verify-email", verifyEmail);
-router.post("/users/verify-email", authMiddleware, verifyUserEmail);
 router.post("/refresh-token", authMiddleware, refreshAccessToken);
 
 export { router as authRouter };

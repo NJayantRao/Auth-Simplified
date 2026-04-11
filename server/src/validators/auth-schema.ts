@@ -5,3 +5,8 @@ export const registerSchema = z.object({
   email: z.string().email({ message: "Invalid Email address" }),
   password: z.string().min(8),
 });
+
+export const loginSchema = z.object({
+  email: z.string().email({ message: "Invalid Email address" }),
+  password: z.string().min(8),
+});

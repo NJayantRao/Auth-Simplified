@@ -7,9 +7,7 @@
   },
   "host": "localhost:5000",
   "basePath": "/",
-  "schemes": [
-    "http"
-  ],
+  "schemes": ["http"],
   "paths": {
     "/": {
       "get": {
@@ -43,7 +41,7 @@
         }
       }
     },
-    "/api/v1/auth/users/": {
+    "/api/v1/auth/register": {
       "post": {
         "description": "",
         "parameters": [
@@ -72,6 +70,64 @@
           },
           "400": {
             "description": "Bad Request"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
           },
           "429": {
             "description": "Too Many Requests"
@@ -113,7 +169,7 @@
         }
       }
     },
-    "/api/v1/auth/users/verify-email": {
+    "/api/v1/auth/refresh-token": {
       "post": {
         "description": "",
         "responses": {
@@ -132,7 +188,7 @@
         }
       }
     },
-    "/api/v1/auth/refresh-token": {
+    "/api/v1/users/verify-email": {
       "post": {
         "description": "",
         "responses": {

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import ApiError from "../utils/api-error.js";
-import type { Ipayload } from "../types/jwt.types.js";
+import type { IPayload } from "../types/jwt.types.js";
 import { ENV } from "../lib/env.js";
 
 const authMiddleware = async (req: any, res: any, next: any) => {
@@ -11,10 +11,6 @@ const authMiddleware = async (req: any, res: any, next: any) => {
     if (!token) {
       return res.status(401).json(new ApiError(401, "Unauthorized request"));
     }
-    console.log(
-      "Secret used to verify:",
-      JSON.stringify(ENV.ACCESS_TOKEN_SECRET)
-    );
     const decoded = jwt.verify(token, ENV.ACCESS_TOKEN_SECRET);
 
     req.user = decoded;
@@ -25,11 +21,11 @@ const authMiddleware = async (req: any, res: any, next: any) => {
   }
 };
 
-const generateAccessToken = (userData: Ipayload) => {
+const generateAccessToken = (userData: IPayload) => {
   return jwt.sign(userData, ENV.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
 };
 
-const generateRefreshToken = (userData: Ipayload) => {
+const generateRefreshToken = (userData: IPayload) => {
   return jwt.sign(userData, ENV.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
 };
 
