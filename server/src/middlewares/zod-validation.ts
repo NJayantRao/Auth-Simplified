@@ -9,13 +9,20 @@ export function validateData(schema: ZodSchema) {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const errorMessage = error.issues
-          .map((issue) => `${issue.path.join(".")} is ${issue.message}`)
-          .join(", ");
-        res.status(400).json(new ApiError(400, errorMessage));
-      } else {
-        res.status(500).json(new ApiError(500, "Internal Server Error"));
+        const firstError = error.issues[0];
+
+        if (!firstError) {
+          return res
+            .status(400)
+            .json(new ApiError(400, "Invalid request data"));
+        }
+
+        const errorMessage = firstError.message;
+
+        return res.status(400).json(new ApiError(400, errorMessage));
       }
+
+      return res.status(500).json(new ApiError(500, "Internal Server Error"));
     }
   };
 }

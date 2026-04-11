@@ -40,7 +40,7 @@ const EyeOffIcon = () => (
   </svg>
 )
 
-export function SignupForm({
+export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -53,28 +53,17 @@ export function SignupForm({
           <form className="p-6 md:p-8">
             <FieldGroup className="gap-5">
               <div className="flex flex-col items-center gap-1 text-center">
-                <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
+                <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
                 <p className="text-sm text-muted-foreground">
-                  Get started for free today
+                  Sign in to your AuthSystem account
                 </p>
               </div>
 
-              {/* Name */}
-              <Field>
-                <FieldLabel htmlFor="signup-name">Name</FieldLabel>
-                <Input
-                  id="signup-name"
-                  type="text"
-                  placeholder="John Doe"
-                  required
-                />
-              </Field>
-
               {/* Email */}
               <Field>
-                <FieldLabel htmlFor="signup-email">Email</FieldLabel>
+                <FieldLabel htmlFor="signin-email">Email</FieldLabel>
                 <Input
-                  id="signup-email"
+                  id="signin-email"
                   type="email"
                   placeholder="you@example.com"
                   required
@@ -83,10 +72,18 @@ export function SignupForm({
 
               {/* Password */}
               <Field>
-                <FieldLabel htmlFor="signup-password">Password</FieldLabel>
+                <div className="flex items-center justify-between">
+                  <FieldLabel htmlFor="signin-password">Password</FieldLabel>
+                  <a
+                    href="#"
+                    className="text-xs text-muted-foreground underline-offset-4 hover:underline hover:text-foreground transition-colors"
+                  >
+                    Forgot password?
+                  </a>
+                </div>
                 <div className="relative">
                   <Input
-                    id="signup-password"
+                    id="signin-password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     required
@@ -101,14 +98,11 @@ export function SignupForm({
                     {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
                 </div>
-                <FieldDescription className="text-xs">
-                  Must be at least 8 characters.
-                </FieldDescription>
               </Field>
 
               {/* Submit */}
               <Field>
-                <Button type="submit" className="w-full">Create Account</Button>
+                <Button type="submit" className="w-full">Sign In</Button>
               </Field>
 
               {/* Divider */}
@@ -129,9 +123,9 @@ export function SignupForm({
               </Field>
 
               <FieldDescription className="text-center text-sm">
-                Already have an account?{" "}
-                <a href="/sign-in" className="font-medium underline underline-offset-4 hover:text-foreground transition-colors">
-                  Sign in
+                Don&apos;t have an account?{" "}
+                <a href="/sign-up" className="font-medium underline underline-offset-4 hover:text-foreground transition-colors">
+                  Sign up
                 </a>
               </FieldDescription>
             </FieldGroup>
@@ -141,13 +135,13 @@ export function SignupForm({
           <div className="relative hidden bg-muted md:block">
             <img
               src="/signin-bg.png"
-              alt="Sign up visual"
+              alt="Sign in visual"
               className="absolute inset-0 h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-black/30 flex flex-col justify-end p-8">
               <p className="text-white text-lg font-semibold leading-snug">
-                Ship auth in minutes.<br />
-                <span className="text-white/70 text-sm font-normal">No vendor lock-in · MIT Licensed</span>
+                Secure by design.<br />
+                <span className="text-white/70 text-sm font-normal">JWT · Redis · RBAC</span>
               </p>
             </div>
           </div>
