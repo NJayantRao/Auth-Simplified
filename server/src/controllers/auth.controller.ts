@@ -106,13 +106,13 @@ export const loginUser = AsyncHandler(async (req: any, res: any) => {
     select: { id: true, email: true, password: true, role: true },
   });
   if (!user) {
-    return res.status(404).json(new ApiError(401, "Invalid Credentials"));
+    return res.status(401).json(new ApiError(401, "Invalid Credentials"));
   }
 
   //compare password
   const isMatched = await comparePassword(password, user.password);
   if (!isMatched) {
-    return res.status(404).json(new ApiError(401, "Invalid Credentials"));
+    return res.status(401).json(new ApiError(401, "Invalid Credentials"));
   }
 
   //generate access & refresh tokens
@@ -149,10 +149,10 @@ export const loginUser = AsyncHandler(async (req: any, res: any) => {
  * @access public
  */
 export const logoutUser = AsyncHandler(async (req: any, res: any) => {
-  const userId = req.user.id;
+  const { id } = req.user;
 
   const refreshToken = req?.cookies?.refreshToken;
-  const storedRefreshToken = await redisClient.get(`refresh-token:${userId}`);
+  const storedRefreshToken = await redisClient.get(`refresh-token:${id}`);
   if (!refreshToken || refreshToken !== storedRefreshToken) {
     return res.status(401).json(new ApiError(401, "Unauthorized request"));
   }
@@ -164,7 +164,7 @@ export const logoutUser = AsyncHandler(async (req: any, res: any) => {
     "EX",
     7 * 24 * 60 * 60
   );
-  await redisClient.del(`refresh-token:${userId}`);
+  await redisClient.del(`refresh-token:${id}`);
 
   //clear tokens from cookies
   res.clearCookie("accessToken", baseOptions);
