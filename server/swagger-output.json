@@ -10,6 +10,14 @@
   "schemes": ["http"],
   "paths": {
     "/": {
+      "options": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      },
       "get": {
         "description": "",
         "responses": {
@@ -208,7 +216,7 @@
       }
     },
     "/api/v1/users/profile": {
-      "post": {
+      "get": {
         "description": "",
         "responses": {
           "200": {

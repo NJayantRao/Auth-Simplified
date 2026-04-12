@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,7 +8,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
+  // CardFooter,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
+// import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import {
   LayoutDashboard,
@@ -36,14 +36,13 @@ import {
   Package,
   ShoppingCart,
   Search,
-  Bell,
 } from "lucide-react";
 
 export default function Dashboard() {
   const { user, getUser, logout, isLoading, verifyEmail } = useAuth();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isChangingPass, setIsChangingPass] = useState(false);
+  // const [isChangingPass, setIsChangingPass] = useState(false);
 
   useEffect(() => {
     if (!user) getUser();
@@ -55,6 +54,12 @@ export default function Dashboard() {
   const handleLogout = (e: React.FormEvent) => {
     e.preventDefault();
     logout();
+  };
+
+  const handleVerifyEmail = async () => {
+    setIsVerifying(true);
+    await verifyEmail();
+    setIsVerifying(false);
   };
 
   return (
@@ -134,14 +139,14 @@ export default function Dashboard() {
                 className="h-9 w-[150px] rounded-md bg-muted/40 pl-9 md:w-[200px] lg:w-[250px]"
               />
             </div>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full overflow-hidden border border-border bg-muted/40">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="/avatars/01.png" alt="@user" />
                     <AvatarFallback className="bg-background text-xs font-semibold">
-                      {user?.data?.email?.substring(0, 2).toUpperCase()}
+                      {user?.email?.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -149,18 +154,18 @@ export default function Dashboard() {
               <DropdownMenuContent align="end" className="w-56 mt-1">
                 <DropdownMenuLabel>
                   <span className="font-normal block text-xs text-muted-foreground">Signed in as</span>
-                  <span className="truncate block font-medium max-w-[200px]">{user?.data?.email}</span>
+                  <span className="truncate block font-medium max-w-[200px]">{user?.email}</span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer">Settings</DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">Support</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer" 
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
                   onClick={handleLogout}
                   disabled={isLoading}
                 >
-                  {isLoading ? "Signing out..." : "Log out"} 
+                  {isLoading ? "Signing out..." : "Log out"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -352,7 +357,7 @@ export default function Dashboard() {
                           <div
                             className={`p-2 rounded-full flex shrink-0 ${user?.isVerified ? "bg-emerald-500/10 text-emerald-500" : "bg-yellow-500/10 text-yellow-500"}`}
                           >
-                            {user?.data?.isVerified ? (
+                            {user?.isVerified ? (
                               <CheckCircle2 className="size-5" />
                             ) : (
                               <AlertCircle className="size-5" />
@@ -361,16 +366,16 @@ export default function Dashboard() {
                           <div>
                             <p className="text-sm font-medium">{user?.email}</p>
                             <p className="text-sm text-muted-foreground mt-0.5">
-                              {user?.data?.isVerified
+                              {user?.isVerified
                                 ? "Your email address is verified."
                                 : "Your email address is pending verification."}
                             </p>
                           </div>
                         </div>
-                        {!user?.data?.isVerified && (
+                        {!user?.isVerified && (
                           <Button
                             variant="secondary"
-                            onClick={verifyEmail}
+                            onClick={handleVerifyEmail}
                             disabled={isVerifying}
                           >
                             {isVerifying ? (
@@ -386,9 +391,9 @@ export default function Dashboard() {
                       </div>
                     </CardContent>
                   </Card>
-
                   {/* Change Password Section */}
-                  <Card>
+                  
+                  {/* <Card>
                     <CardHeader>
                       <CardTitle>Change Password</CardTitle>
                       <CardDescription>
@@ -454,7 +459,7 @@ export default function Dashboard() {
                         </Button>
                       </CardFooter>
                     </form>
-                  </Card>
+                  </Card> */}
                 </div>
               </TabsContent>
             </Tabs>

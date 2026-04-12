@@ -3,7 +3,6 @@ import Home from "./pages/Home";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
-import Protected from "./components/Protected";
 import { useAuth } from "./hooks/useAuth";
 
 const App = () => {
@@ -17,18 +16,9 @@ const App = () => {
       />
       <Route
         path="/sign-up"
-               element={user ? <Navigate to={"/dashboard"} /> : <SignUp />}
+        element={user ? <Navigate to={"/dashboard"} /> : <SignUp />}
       />
-      <Route
-        path="/dashboard"
-        element={
-          
-            <Protected>
-              <Dashboard />
-            </Protected>
-          
-        }
-      />
+      <Route path="/dashboard" element={<Dashboard />} />
     </Routes>
   );
 };
