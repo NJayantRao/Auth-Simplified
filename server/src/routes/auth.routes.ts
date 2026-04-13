@@ -16,6 +16,6 @@ router.post("/register", validateData(registerSchema), registerUser);
 router.post("/login", validateData(loginSchema), loginUser);
 router.post("/logout", authMiddleware, logoutUser);
 router.get("/verify-email", verifyEmail);
-router.post("/refresh-token", authMiddleware, refreshAccessToken);
+router.post("/refresh-token", refreshAccessToken);
 
 export { router as authRouter };

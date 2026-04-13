@@ -17,12 +17,15 @@ const authMiddleware = async (req: any, res: any, next: any) => {
     next();
   } catch (error) {
     console.log(error);
-    return res.status(401).json(401, "Unauthorized request");
+    if (error instanceof jwt.TokenExpiredError) {
+      return res.status(401).json(new ApiError(401, "Token expired"));
+    }
+    return res.status(401).json(new ApiError(401, "Unauthorized request"));
   }
 };
 
 const generateAccessToken = (userData: IPayload) => {
-  return jwt.sign(userData, ENV.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+  return jwt.sign(userData, ENV.ACCESS_TOKEN_SECRET, { expiresIn: "1m" });
 };
 
 const generateRefreshToken = (userData: IPayload) => {

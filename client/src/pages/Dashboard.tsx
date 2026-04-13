@@ -45,7 +45,11 @@ export default function Dashboard() {
   // const [isChangingPass, setIsChangingPass] = useState(false);
 
   useEffect(() => {
-    if (!user) getUser();
+    if (!user){ getUser();
+    console.log("hitted");
+    
+    }
+
   }, [user]);
 
   console.log(user);

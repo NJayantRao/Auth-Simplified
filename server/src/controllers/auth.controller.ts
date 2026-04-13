@@ -45,6 +45,14 @@ export const registerUser = AsyncHandler(async (req: any, res: any) => {
       email,
       password: hashedPassword,
     },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      isVerified: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
   //jwt payload
@@ -83,6 +91,7 @@ export const registerUser = AsyncHandler(async (req: any, res: any) => {
     new ApiResponse(201, "User registered successfully", {
       accessToken,
       refreshToken,
+      user,
     })
   );
 });
@@ -103,7 +112,15 @@ export const loginUser = AsyncHandler(async (req: any, res: any) => {
   //check user exists or not
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, email: true, password: true, role: true },
+    select: {
+      id: true,
+      email: true,
+      password: true,
+      role: true,
+      isVerified: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
   if (!user) {
     return res.status(401).json(new ApiError(401, "Invalid Credentials"));
@@ -124,6 +141,15 @@ export const loginUser = AsyncHandler(async (req: any, res: any) => {
   const accessToken = generateAccessToken(payload);
   const refreshToken = generateRefreshToken(payload);
 
+  const sanitizedUser = {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    isVerified: user.isVerified,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+
   //set refresh token in redis
   await redisClient.set(
     `refresh-token:${user.id}`,
@@ -139,6 +165,7 @@ export const loginUser = AsyncHandler(async (req: any, res: any) => {
     new ApiResponse(200, "Logged in successfully", {
       accessToken,
       refreshToken,
+      user: sanitizedUser,
     })
   );
 });
@@ -232,10 +259,11 @@ export const refreshAccessToken = async (req: any, res: any) => {
     }
 
     const accessToken = jwt.sign({ id, email, role }, ENV.ACCESS_TOKEN_SECRET, {
-      expiresIn: "15m",
+      expiresIn: "1m",
     });
 
     res.cookie("accessToken", accessToken, baseOptions);
+    console.log("refresh token called");
 
     return res.status(200).json(
       new ApiResponse(200, "Access token refreshed successfully", {

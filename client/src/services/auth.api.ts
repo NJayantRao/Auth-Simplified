@@ -5,4 +5,29 @@ const apiInstance = axios.create({
   withCredentials: true,
 });
 
+apiInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    if (
+      error?.response?.status === 401 &&
+      error?.response?.data?.message === "Token expired" &&
+      !originalRequest._retry // to avoid infinite loop
+    ) {
+      originalRequest._retry = true;
+      try {
+        await apiInstance.post(`${import.meta.env.VITE_BACKEND_URL}/auth/refresh-token`)
+        console.log("intercepter reached");
+        
+        return apiInstance(originalRequest); 
+      } catch (refreshError) {
+        console.log(refreshError);
+        window.location.href = "/sign-in";
+      }
+    }
+    return Promise.reject(error)
+  },
+);
+
 export default apiInstance;

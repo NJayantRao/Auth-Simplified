@@ -25,9 +25,10 @@ export const useAuth = () => {
         email,
         password,
       });
+      const user = res?.data?.data?.user;
       //   console.log(res);
-
       toast.success(res.data?.message || "Register successfully");
+      setUser(user);
       navigate("/dashboard");
     } catch (error: any) {
       console.log(error?.response?.data || error);
@@ -44,8 +45,10 @@ export const useAuth = () => {
         email,
         password,
       });
+      const user = res?.data?.data?.user;
       // console.log(res);
       toast.success(res.data?.message || "Login successfully");
+      setUser(user);
       navigate("/dashboard");
     } catch (error: any) {
       console.log(error?.response?.data || error);
@@ -60,7 +63,7 @@ export const useAuth = () => {
       setIsLoading(true);
       const res = await apiInstance.post("/auth/logout");
       // console.log(res);
-      setUser(null)
+      setUser(null);
       toast.success(res.data?.message || "Logout successfully");
       navigate("/");
     } catch (error: any) {
@@ -75,12 +78,12 @@ export const useAuth = () => {
     try {
       setIsLoading(true);
       const res = await apiInstance.get("/users/profile");
-      setUser(res?.data?.data)
+      setUser(res?.data?.data);
     } catch (error: any) {
-       if (error?.response?.status === 401) {
-      setUser(null); 
-      return;
-       }
+      if (error?.response?.status === 401) {
+        setUser(null);
+        return;
+      }
       console.log(error?.response?.data || error);
       toast.error(
         error?.response?.data?.message || "Failed to fetch user data",
@@ -94,7 +97,6 @@ export const useAuth = () => {
     try {
       const res = await apiInstance.post("/users/profile");
       console.log(res);
-
     } catch (error: any) {
       console.log(error?.response?.data || error);
       toast.error(
