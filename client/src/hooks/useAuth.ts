@@ -16,6 +16,7 @@ export const useAuth = () => {
     email: string;
     password: string;
   };
+
   const navigate = useNavigate();
   const register = async ({ name, email, password }: RegisterData) => {
     try {
@@ -49,6 +50,8 @@ export const useAuth = () => {
       // console.log(res);
       toast.success(res.data?.message || "Login successfully");
       setUser(user);
+      console.log("user saved in state");
+      
       navigate("/dashboard");
     } catch (error: any) {
       console.log(error?.response?.data || error);

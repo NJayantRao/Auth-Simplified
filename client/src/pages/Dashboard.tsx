@@ -39,21 +39,11 @@ import {
 } from "lucide-react";
 
 export default function Dashboard() {
-  const { user, getUser, logout, isLoading, verifyEmail } = useAuth();
+  const { user, logout, isLoading, verifyEmail } = useAuth();
   // const navigate = useNavigate();
   const [isVerifying, setIsVerifying] = useState(false);
   // const [isChangingPass, setIsChangingPass] = useState(false);
-
-  useEffect(() => {
-    if (!user){ getUser();
-    console.log("hitted");
-    
-    }
-
-  }, [user]);
-
-  console.log(user);
-
+  
   //logout
   const handleLogout = (e: React.FormEvent) => {
     e.preventDefault();

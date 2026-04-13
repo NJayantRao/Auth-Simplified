@@ -259,7 +259,7 @@ export const refreshAccessToken = async (req: any, res: any) => {
     }
 
     const accessToken = jwt.sign({ id, email, role }, ENV.ACCESS_TOKEN_SECRET, {
-      expiresIn: "1m",
+      expiresIn: "15m",
     });
 
     res.cookie("accessToken", accessToken, baseOptions);

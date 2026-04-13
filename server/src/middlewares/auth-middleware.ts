@@ -25,7 +25,7 @@ const authMiddleware = async (req: any, res: any, next: any) => {
 };
 
 const generateAccessToken = (userData: IPayload) => {
-  return jwt.sign(userData, ENV.ACCESS_TOKEN_SECRET, { expiresIn: "1m" });
+  return jwt.sign(userData, ENV.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
 };
 
 const generateRefreshToken = (userData: IPayload) => {
