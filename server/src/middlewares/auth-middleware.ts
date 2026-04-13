@@ -32,4 +32,20 @@ const generateRefreshToken = (userData: IPayload) => {
   return jwt.sign(userData, ENV.REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
 };
 
-export { authMiddleware, generateAccessToken, generateRefreshToken };
+const authorizeAdmin = async (req: any, res: any, next: any) => {
+  try {
+    if (req?.user?.role !== "admin") {
+      return res.status(403).json(new ApiError(403, "Forbidden Request"));
+    }
+    next();
+  } catch (error) {
+    return res.status(403).json(new ApiError(403, "Forbidden Request"));
+  }
+};
+
+export {
+  authMiddleware,
+  generateAccessToken,
+  generateRefreshToken,
+  authorizeAdmin,
+};

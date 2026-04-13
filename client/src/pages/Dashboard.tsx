@@ -39,11 +39,17 @@ import {
 } from "lucide-react";
 
 export default function Dashboard() {
-  const { user, logout, isLoading, verifyEmail } = useAuth();
+  const { user, logout, isLoading, verifyEmail, getUser } = useAuth();
   // const navigate = useNavigate();
   const [isVerifying, setIsVerifying] = useState(false);
   // const [isChangingPass, setIsChangingPass] = useState(false);
-  
+
+  useEffect(() => {
+    if (!user) {
+      getUser();
+      console.log("hitted");
+    }
+  }, [user]);
   //logout
   const handleLogout = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +61,10 @@ export default function Dashboard() {
     await verifyEmail();
     setIsVerifying(false);
   };
+
+  if (isLoading) {
+    return <Spinner />;
+  }
 
   return (
     <div className="flex min-h-screen w-full bg-background md:bg-muted/30">
@@ -107,7 +117,6 @@ export default function Dashboard() {
             Settings
           </Link>
         </nav>
-
       </aside>
 
       {/* ── Main Dashboard Content ── */}
@@ -136,7 +145,11 @@ export default function Dashboard() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full overflow-hidden border border-border bg-muted/40">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full overflow-hidden border border-border bg-muted/40"
+                >
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="/avatars/01.png" alt="@user" />
                     <AvatarFallback className="bg-background text-xs font-semibold">
@@ -147,12 +160,20 @@ export default function Dashboard() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 mt-1">
                 <DropdownMenuLabel>
-                  <span className="font-normal block text-xs text-muted-foreground">Signed in as</span>
-                  <span className="truncate block font-medium max-w-[200px]">{user?.email}</span>
+                  <span className="font-normal block text-xs text-muted-foreground">
+                    Signed in as
+                  </span>
+                  <span className="truncate block font-medium max-w-[200px]">
+                    {user?.email}
+                  </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">Settings</DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">Support</DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  Support
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
@@ -386,7 +407,7 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
                   {/* Change Password Section */}
-                  
+
                   {/* <Card>
                     <CardHeader>
                       <CardTitle>Change Password</CardTitle>

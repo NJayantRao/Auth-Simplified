@@ -5,18 +5,10 @@ import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import { useAuth } from "./hooks/useAuth";
 import Protected from "./components/Protected";
-import { useEffect } from "react";
+import NotFound from "./pages/NotFound";
 
 const App = () => {
-  const { user, getUser } = useAuth();
-  console.log(user);
-
-  useEffect(() => {
-    if (!user) {
-      getUser();
-      console.log("hitted");
-    }
-  }, [user]);
+  const { user } = useAuth();
 
   console.log(user);
   return (
@@ -33,6 +25,7 @@ const App = () => {
       <Route element={<Protected />}>
         <Route path="/dashboard" element={<Dashboard />} />
       </Route>
+      <Route path="*" element={ <NotFound />} />
     </Routes>
   );
 };

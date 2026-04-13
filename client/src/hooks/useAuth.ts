@@ -51,7 +51,7 @@ export const useAuth = () => {
       toast.success(res.data?.message || "Login successfully");
       setUser(user);
       console.log("user saved in state");
-      
+
       navigate("/dashboard");
     } catch (error: any) {
       console.log(error?.response?.data || error);
@@ -83,7 +83,11 @@ export const useAuth = () => {
       const res = await apiInstance.get("/users/profile");
       setUser(res?.data?.data);
     } catch (error: any) {
-      if (error?.response?.status === 401) {
+      if (
+        error?.response?.status === 401 &&
+        error?.response?.data?.message ===
+          "Session expired. Please login again."
+      ) {
         setUser(null);
         return;
       }
