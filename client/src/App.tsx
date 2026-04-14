@@ -6,9 +6,14 @@ import Dashboard from "./pages/Dashboard";
 import { useAuth } from "./hooks/useAuth";
 import Protected from "./components/Protected";
 import NotFound from "./pages/NotFound";
+import { useEffect } from "react";
 
 const App = () => {
-  const { user } = useAuth();
+  const { user ,getUser} = useAuth();
+
+  useEffect(()=>{
+    getUser()
+  },[])
 
   console.log(user);
   return (

@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import ApiError from "../utils/api-error.js";
 import type { IPayload } from "../types/jwt.types.js";
 import { ENV } from "../lib/env.js";
+import { redisClient } from "../lib/redis.js";
 
 const authMiddleware = async (req: any, res: any, next: any) => {
   try {
@@ -11,7 +12,14 @@ const authMiddleware = async (req: any, res: any, next: any) => {
     if (!token) {
       return res.status(401).json(new ApiError(401, "Unauthorized request"));
     }
-    const decoded = jwt.verify(token, ENV.ACCESS_TOKEN_SECRET);
+    const decoded = jwt.verify(token, ENV.ACCESS_TOKEN_SECRET) as IPayload;
+
+    if (decoded.sessionId) {
+      const activeSession = await redisClient.get(`active-session:${decoded.id}`);
+      if (!activeSession || activeSession !== decoded.sessionId) {
+        return res.status(401).json(new ApiError(401, "Session expired. You logged in from another device."));
+      }
+    }
 
     req.user = decoded;
     next();

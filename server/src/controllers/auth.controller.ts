@@ -56,10 +56,12 @@ export const registerUser = AsyncHandler(async (req: any, res: any) => {
   });
 
   //jwt payload
+  const sessionId = crypto.randomBytes(16).toString("hex");
   const payload: IPayload = {
     id: user.id,
     email: user.email,
     role: user.role,
+    sessionId,
   };
 
   const accessToken = generateAccessToken(payload);
@@ -69,6 +71,14 @@ export const registerUser = AsyncHandler(async (req: any, res: any) => {
   await redisClient.set(
     `refresh-token:${user.id}`,
     refreshToken,
+    "EX",
+    7 * 24 * 60 * 60
+  );
+
+  //store active session ID
+  await redisClient.set(
+    `active-session:${user.id}`,
+    sessionId,
     "EX",
     7 * 24 * 60 * 60
   );
@@ -133,10 +143,12 @@ export const loginUser = AsyncHandler(async (req: any, res: any) => {
   }
 
   //generate access & refresh tokens
+  const sessionId = crypto.randomBytes(16).toString("hex");
   const payload: IPayload = {
     id: user.id,
     email: user.email,
     role: user.role,
+    sessionId,
   };
   const accessToken = generateAccessToken(payload);
   const refreshToken = generateRefreshToken(payload);
@@ -154,6 +166,13 @@ export const loginUser = AsyncHandler(async (req: any, res: any) => {
   await redisClient.set(
     `refresh-token:${user.id}`,
     refreshToken,
+    "EX",
+    7 * 24 * 60 * 60
+  );
+  //set active session ID
+  await redisClient.set(
+    `active-session:${user.id}`,
+    sessionId,
     "EX",
     7 * 24 * 60 * 60
   );
@@ -192,6 +211,7 @@ export const logoutUser = AsyncHandler(async (req: any, res: any) => {
     7 * 24 * 60 * 60
   );
   await redisClient.del(`refresh-token:${id}`);
+  await redisClient.del(`active-session:${id}`);
 
   //clear tokens from cookies
   res.clearCookie("accessToken", baseOptions);
@@ -220,8 +240,8 @@ export const verifyEmail = AsyncHandler(async (req: any, res: any) => {
   });
 
   await redisClient.del(`verify-token:${user.id}`);
-
-  res.status(200).json(new ApiResponse(200, "Email verified successfully"));
+  
+  return res.redirect(`${ENV.FRONTEND_URL}/dashboard`)
 });
 
 /**
@@ -248,7 +268,7 @@ export const refreshAccessToken = async (req: any, res: any) => {
       refreshToken,
       ENV.REFRESH_TOKEN_SECRET
     ) as IPayload;
-    const { id, email, role } = decoded;
+    const { id, email, role, sessionId } = decoded;
 
     const storedRefreshToken = await redisClient.get(`refresh-token:${id}`);
 
@@ -258,7 +278,14 @@ export const refreshAccessToken = async (req: any, res: any) => {
         .json(new ApiError(401, "Session expired. Please login again."));
     }
 
-    const accessToken = jwt.sign({ id, email, role }, ENV.ACCESS_TOKEN_SECRET, {
+    const activeSessionId = await redisClient.get(`active-session:${id}`);
+    if (!activeSessionId || activeSessionId !== sessionId) {
+      return res
+        .status(401)
+        .json(new ApiError(401, "Session expired. You logged in from another device."));
+    }
+
+    const accessToken = jwt.sign({ id, email, role, sessionId }, ENV.ACCESS_TOKEN_SECRET, {
       expiresIn: "15m",
     });
 

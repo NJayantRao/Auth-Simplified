@@ -84,9 +84,7 @@ export const useAuth = () => {
       setUser(res?.data?.data);
     } catch (error: any) {
       if (
-        error?.response?.status === 401 &&
-        error?.response?.data?.message ===
-          "Session expired. Please login again."
+        error?.response?.status === 401
       ) {
         setUser(null);
         return;
