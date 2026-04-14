@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 /* ── Feature data ── */
 const features = [
@@ -84,6 +85,7 @@ export default function Home() {
             <a href="https://github.com" target="_blank" rel="noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">GitHub</a>
           </nav>
           <div className="flex items-center gap-3">
+            <AnimatedThemeToggler className="p-2 rounded-full hover:bg-muted/40" />
             <Link to="/sign-in" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Sign in
             </Link>

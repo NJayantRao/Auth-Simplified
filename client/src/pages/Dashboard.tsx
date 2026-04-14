@@ -37,6 +37,7 @@ import {
   ShoppingCart,
   Search,
 } from "lucide-react";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 export default function Dashboard() {
   const { user, logout, isLoading, verifyEmail, getUser } = useAuth();
@@ -142,6 +143,8 @@ export default function Dashboard() {
                 className="h-9 w-[150px] rounded-md bg-muted/40 pl-9 md:w-[200px] lg:w-[250px]"
               />
             </div>
+            
+            <AnimatedThemeToggler className="p-2 rounded-full hover:bg-muted/40" />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

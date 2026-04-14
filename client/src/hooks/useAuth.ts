@@ -66,9 +66,13 @@ export const useAuth = () => {
       setIsLoading(true);
       const res = await apiInstance.post("/auth/logout");
       // console.log(res);
-      setUser(null);
       toast.success(res.data?.message || "Logout successfully");
       navigate("/");
+      // Defer clearing the user state so the Protected component doesn't 
+      // immediately redirect us to /sign-in before the router can process navigate("/")
+      setTimeout(() => {
+        setUser(null);
+      }, 0);
     } catch (error: any) {
       console.log(error);
       toast.error(error?.response?.data?.message || "Logout failed");
