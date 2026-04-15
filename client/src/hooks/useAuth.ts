@@ -4,7 +4,14 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
 
 export const useAuth = () => {
-  const { user, setUser, isLoading, setIsLoading, isInitialized, setIsInitialized } = useAuthContext();
+  const {
+    user,
+    setUser,
+    isLoading,
+    setIsLoading,
+    isInitialized,
+    setIsInitialized,
+  } = useAuthContext();
 
   type RegisterData = {
     name: string;
@@ -68,7 +75,7 @@ export const useAuth = () => {
       // console.log(res);
       toast.success(res.data?.message || "Logout successfully");
       navigate("/");
-      // Defer clearing the user state so the Protected component doesn't 
+      // Defer clearing the user state so the Protected component doesn't
       // immediately redirect us to /sign-in before the router can process navigate("/")
       setTimeout(() => {
         setUser(null);
@@ -87,9 +94,7 @@ export const useAuth = () => {
       const res = await apiInstance.get("/users/profile");
       setUser(res?.data?.data);
     } catch (error: any) {
-      if (
-        error?.response?.status === 401
-      ) {
+      if (error?.response?.status === 401) {
         setUser(null);
         return;
       }
@@ -115,5 +120,14 @@ export const useAuth = () => {
     }
   };
 
-  return { user, isLoading, isInitialized, register, login, logout, getUser, verifyEmail };
+  return {
+    user,
+    isLoading,
+    isInitialized,
+    register,
+    login,
+    logout,
+    getUser,
+    verifyEmail,
+  };
 };

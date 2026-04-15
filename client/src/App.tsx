@@ -32,7 +32,7 @@ const App = () => {
       <Route element={<Protected />}>
         <Route path="/dashboard" element={<Dashboard />} />
       </Route>
-      <Route path="*" element={ <NotFound />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

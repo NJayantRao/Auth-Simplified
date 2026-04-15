@@ -218,7 +218,9 @@ export const getGoogleLoginCallback = AsyncHandler(
       !codeVerifier ||
       state != storedState
     ) {
-      return res.redirect("http://localhost:5173/sign-in?error=oauth_state_mismatch");
+      return res.redirect(
+        "http://localhost:5173/sign-in?error=oauth_state_mismatch"
+      );
     }
     try {
       let tokens = await google.validateAuthorizationCode(code, codeVerifier);
@@ -281,7 +283,9 @@ export const getGoogleLoginCallback = AsyncHandler(
       }
 
       if (!user)
-        return res.redirect("http://localhost:5173/sign-in?error=user_creation_failed");
+        return res.redirect(
+          "http://localhost:5173/sign-in?error=user_creation_failed"
+        );
 
       // 5️⃣ Generate JWT like normal login
       const sessionId = crypto.randomBytes(16).toString("hex");
@@ -317,7 +321,9 @@ export const getGoogleLoginCallback = AsyncHandler(
       return res.redirect("http://localhost:5173/dashboard");
     } catch (error) {
       console.log("Google OAuth Error:", error);
-      return res.redirect("http://localhost:5173/sign-in?error=google_oauth_failed");
+      return res.redirect(
+        "http://localhost:5173/sign-in?error=google_oauth_failed"
+      );
     }
   }
 );
@@ -338,34 +344,39 @@ export const getGithubLoginCallback = AsyncHandler(
     const storedState = req.cookies.github_oauth_state;
 
     if (!code || !state || !storedState || state != storedState) {
-      return res.redirect("http://localhost:5173/sign-in?error=oauth_state_mismatch");
+      return res.redirect(
+        "http://localhost:5173/sign-in?error=oauth_state_mismatch"
+      );
     }
-    
+
     try {
       let tokens = await github.validateAuthorizationCode(code);
       const accessToken = tokens.accessToken();
 
       const githubUserResponse = await fetch("https://api.github.com/user", {
         headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
       const githubUser: any = await githubUserResponse.json();
-      
+
       const githubUserId = String(githubUser.id);
       const name = githubUser.name || githubUser.login;
-      
+
       let email = githubUser.email;
 
       if (!email) {
-          const emailsResponse = await fetch("https://api.github.com/user/emails", {
+        const emailsResponse = await fetch(
+          "https://api.github.com/user/emails",
+          {
             headers: {
-              Authorization: `Bearer ${accessToken}`
-            }
-          });
-          const emails: any = await emailsResponse.json();
-          const primaryEmail = emails.find((e: any) => e.primary) ?? emails[0];
-          email = primaryEmail.email;
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+        const emails: any = await emailsResponse.json();
+        const primaryEmail = emails.find((e: any) => e.primary) ?? emails[0];
+        email = primaryEmail.email;
       }
 
       let oauthAccount = await prisma.oAuthProvider.findUnique({
@@ -413,7 +424,9 @@ export const getGithubLoginCallback = AsyncHandler(
       }
 
       if (!user) {
-        return res.redirect("http://localhost:5173/sign-in?error=user_creation_failed");
+        return res.redirect(
+          "http://localhost:5173/sign-in?error=user_creation_failed"
+        );
       }
 
       const sessionId = crypto.randomBytes(16).toString("hex");
@@ -446,7 +459,9 @@ export const getGithubLoginCallback = AsyncHandler(
       return res.redirect("http://localhost:5173/dashboard");
     } catch (error) {
       console.log("GitHub OAuth Error:", error);
-      return res.redirect("http://localhost:5173/sign-in?error=github_oauth_failed");
+      return res.redirect(
+        "http://localhost:5173/sign-in?error=github_oauth_failed"
+      );
     }
   }
 );
