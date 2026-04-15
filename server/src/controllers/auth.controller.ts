@@ -17,6 +17,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { generateCodeVerifier, generateState, decodeIdToken } from "arctic";
 import { google } from "../utils/google.js";
+import { github } from "../utils/github.js";
 
 /**
  * @route POST /api/v1/auth/register
@@ -217,8 +218,7 @@ export const getGoogleLoginCallback = AsyncHandler(
       !codeVerifier ||
       state != storedState
     ) {
-      res.status(500).json(new ApiError(500, "Google login failed!"));
-      return res.redirect("http://localhost:5173/sign-in");
+      return res.redirect("http://localhost:5173/sign-in?error=oauth_state_mismatch");
     }
     try {
       let tokens = await google.validateAuthorizationCode(code, codeVerifier);
@@ -281,9 +281,7 @@ export const getGoogleLoginCallback = AsyncHandler(
       }
 
       if (!user)
-        return res
-          .status(500)
-          .json(new ApiError(500, "User could not be found or created"));
+        return res.redirect("http://localhost:5173/sign-in?error=user_creation_failed");
 
       // 5️⃣ Generate JWT like normal login
       const sessionId = crypto.randomBytes(16).toString("hex");
@@ -318,8 +316,137 @@ export const getGoogleLoginCallback = AsyncHandler(
       // 6️⃣ Redirect to frontend dashboard
       return res.redirect("http://localhost:5173/dashboard");
     } catch (error) {
-      console.log(error);
-      return res.redirect("http://localhost:5173/login?error=google");
+      console.log("Google OAuth Error:", error);
+      return res.redirect("http://localhost:5173/sign-in?error=google_oauth_failed");
+    }
+  }
+);
+
+export const githubLogin = AsyncHandler(async (req: any, res: any) => {
+  const state = generateState();
+  const url = github.createAuthorizationURL(state, ["user:email"]);
+  res.cookie("github_oauth_state", state, baseOptions);
+  res.redirect(url.toString());
+});
+
+export const getGithubLoginCallback = AsyncHandler(
+  async (req: any, res: any) => {
+    const { code, state } = req.query;
+    console.log("Github Code:", code);
+    console.log("Github State:", state);
+
+    const storedState = req.cookies.github_oauth_state;
+
+    if (!code || !state || !storedState || state != storedState) {
+      return res.redirect("http://localhost:5173/sign-in?error=oauth_state_mismatch");
+    }
+    
+    try {
+      let tokens = await github.validateAuthorizationCode(code);
+      const accessToken = tokens.accessToken();
+
+      const githubUserResponse = await fetch("https://api.github.com/user", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+      const githubUser: any = await githubUserResponse.json();
+      
+      const githubUserId = String(githubUser.id);
+      const name = githubUser.name || githubUser.login;
+      
+      let email = githubUser.email;
+
+      if (!email) {
+          const emailsResponse = await fetch("https://api.github.com/user/emails", {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            }
+          });
+          const emails: any = await emailsResponse.json();
+          const primaryEmail = emails.find((e: any) => e.primary) ?? emails[0];
+          email = primaryEmail.email;
+      }
+
+      let oauthAccount = await prisma.oAuthProvider.findUnique({
+        where: {
+          providerName_providerUserId: {
+            providerName: "GITHUB",
+            providerUserId: githubUserId,
+          },
+        },
+      });
+
+      let user;
+
+      if (oauthAccount) {
+        user = await prisma.user.findUnique({
+          where: { id: oauthAccount.userId },
+        });
+      } else {
+        user = await prisma.$transaction(async (tx) => {
+          let existingUser = await tx.user.findUnique({
+            where: { email },
+          });
+
+          if (!existingUser) {
+            existingUser = await tx.user.create({
+              data: {
+                name,
+                email,
+                password: "",
+                isVerified: true,
+              },
+            });
+          }
+
+          await tx.oAuthProvider.create({
+            data: {
+              userId: existingUser.id,
+              providerName: "GITHUB",
+              providerUserId: githubUserId,
+            },
+          });
+
+          return existingUser;
+        });
+      }
+
+      if (!user) {
+        return res.redirect("http://localhost:5173/sign-in?error=user_creation_failed");
+      }
+
+      const sessionId = crypto.randomBytes(16).toString("hex");
+      const payload: IPayload = {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        sessionId,
+      };
+
+      const loginAccessToken = generateAccessToken(payload);
+      const refreshToken = generateRefreshToken(payload);
+
+      await redisClient.set(
+        `refresh-token:${user.id}`,
+        refreshToken,
+        "EX",
+        7 * 24 * 60 * 60
+      );
+      await redisClient.set(
+        `active-session:${user.id}`,
+        sessionId,
+        "EX",
+        7 * 24 * 60 * 60
+      );
+
+      res.cookie("accessToken", loginAccessToken, baseOptions);
+      res.cookie("refreshToken", refreshToken, refreshTokenOptions);
+
+      return res.redirect("http://localhost:5173/dashboard");
+    } catch (error) {
+      console.log("GitHub OAuth Error:", error);
+      return res.redirect("http://localhost:5173/sign-in?error=github_oauth_failed");
     }
   }
 );

@@ -147,6 +147,10 @@ const SignIn = () => {
                       variant="outline"
                       type="button"
                       className="h-10 gap-2 font-medium"
+                       onClick={() => {
+                        window.location.href =
+                          "http://localhost:5000/api/v1/auth/github";
+                      }}
                     >
                       <FaGithub />
                       GitHub

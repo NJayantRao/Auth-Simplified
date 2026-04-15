@@ -9,13 +9,15 @@ import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
 
 const App = () => {
-  const { user ,getUser} = useAuth();
+  const { user, isInitialized, getUser } = useAuth();
 
-  useEffect(()=>{
-    getUser()
-  },[])
+  // Initialize user on app mount
+  useEffect(() => {
+    getUser();
+  }, []);
 
-  console.log(user);
+  console.log("User:", user);
+  console.log("Is Initialized:", isInitialized);
   return (
     <Routes>
       <Route path="/" element={<Home />} />

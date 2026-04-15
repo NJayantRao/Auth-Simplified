@@ -14,6 +14,8 @@ type AuthContextType = {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  isInitialized: boolean;
+  setIsInitialized: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -29,6 +31,7 @@ export const useAuthContext = () => {
 function AuthContextProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
   return (
     <>
       <AuthContext.Provider
@@ -37,6 +40,8 @@ function AuthContextProvider({ children }: { children: ReactNode }) {
           setUser,
           isLoading,
           setIsLoading,
+          isInitialized,
+          setIsInitialized,
         }}
       >
         {children}

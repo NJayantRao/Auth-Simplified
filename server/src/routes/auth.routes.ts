@@ -1,6 +1,8 @@
 import express from "express";
 import {
+  getGithubLoginCallback,
   getGoogleLoginCallback,
+  githubLogin,
   googleLogin,
   loginUser,
   logoutUser,
@@ -20,6 +22,9 @@ router.post("/logout", authMiddleware, logoutUser);
 router.get("/verify-email", verifyEmail);
 router.post("/refresh-token", refreshAccessToken);
 router.get("/google", googleLogin);
+router.get("/google", googleLogin);
 router.get("/google/callback", getGoogleLoginCallback);
+router.get("/github", githubLogin);
+router.get("/github/callback", getGithubLoginCallback);
 
 export { router as authRouter };

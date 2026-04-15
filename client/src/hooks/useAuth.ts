@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
 
 export const useAuth = () => {
-  const { user, setUser, isLoading, setIsLoading } = useAuthContext();
+  const { user, setUser, isLoading, setIsLoading, isInitialized, setIsInitialized } = useAuthContext();
 
   type RegisterData = {
     name: string;
@@ -99,6 +99,7 @@ export const useAuth = () => {
       );
     } finally {
       setIsLoading(false);
+      setIsInitialized(true);
     }
   };
 
@@ -114,5 +115,5 @@ export const useAuth = () => {
     }
   };
 
-  return { user, isLoading, register, login, logout, getUser, verifyEmail };
+  return { user, isLoading, isInitialized, register, login, logout, getUser, verifyEmail };
 };
