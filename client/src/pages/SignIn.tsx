@@ -15,6 +15,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 import { useAuth } from "@/hooks/useAuth";
 import { Spinner } from "@/components/ui/spinner";
+import apiInstance from "@/services/auth.api";
 
 const SignIn = () => {
   const [email, setEmail] = useState<string>("");
@@ -30,7 +31,7 @@ const SignIn = () => {
   };
 
   if (isLoading) {
-    return <Spinner />
+    return <Spinner />;
   }
 
   return (
@@ -67,7 +68,9 @@ const SignIn = () => {
                         setEmail(e.target.value);
                       }}
                       onInvalid={(e: React.InvalidEvent<HTMLInputElement>) => {
-                        (e.target as HTMLInputElement).setCustomValidity("Enter Valid E-Mail ID");
+                        (e.target as HTMLInputElement).setCustomValidity(
+                          "Enter Valid E-Mail ID",
+                        );
                       }}
                       onInput={(e: React.FormEvent<HTMLInputElement>) => {
                         (e.target as HTMLInputElement).setCustomValidity("");
@@ -132,6 +135,10 @@ const SignIn = () => {
                       variant="outline"
                       type="button"
                       className="h-10 gap-2 font-medium"
+                      onClick={() => {
+                        window.location.href =
+                          "http://localhost:5000/api/v1/auth/google";
+                      }}
                     >
                       <FcGoogle />
                       Google

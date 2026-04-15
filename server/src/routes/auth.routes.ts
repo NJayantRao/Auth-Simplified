@@ -1,5 +1,7 @@
 import express from "express";
 import {
+  getGoogleLoginCallback,
+  googleLogin,
   loginUser,
   logoutUser,
   refreshAccessToken,
@@ -17,5 +19,7 @@ router.post("/login", validateData(loginSchema), loginUser);
 router.post("/logout", authMiddleware, logoutUser);
 router.get("/verify-email", verifyEmail);
 router.post("/refresh-token", refreshAccessToken);
+router.get("/google", googleLogin);
+router.get("/google/callback", getGoogleLoginCallback);
 
 export { router as authRouter };

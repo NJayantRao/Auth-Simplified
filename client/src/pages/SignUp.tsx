@@ -80,7 +80,9 @@ const SignUp = () => {
                         setEmail(e.target.value);
                       }}
                       onInvalid={(e: React.InvalidEvent<HTMLInputElement>) => {
-                        (e.target as HTMLInputElement).setCustomValidity("Enter Valid E-Mail ID");
+                        (e.target as HTMLInputElement).setCustomValidity(
+                          "Enter Valid E-Mail ID",
+                        );
                       }}
                       onInput={(e: React.FormEvent<HTMLInputElement>) => {
                         (e.target as HTMLInputElement).setCustomValidity("");
@@ -127,7 +129,7 @@ const SignUp = () => {
                   {/* Submit */}
                   <Field>
                     <Button type="submit" className="w-full">
-                      {isLoading ?  "Registering...":"Create Account" }
+                      {isLoading ? "Registering..." : "Create Account"}
                     </Button>
                   </Field>
 
@@ -142,6 +144,10 @@ const SignUp = () => {
                       variant="outline"
                       type="button"
                       className="h-10 gap-2 font-medium"
+                      onClick={() => {
+                        window.location.href =
+                          "http://localhost:5000/api/v1/auth/google";
+                      }}
                     >
                       <FcGoogle className="size-4" />
                       Google

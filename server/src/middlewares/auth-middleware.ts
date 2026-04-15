@@ -15,9 +15,18 @@ const authMiddleware = async (req: any, res: any, next: any) => {
     const decoded = jwt.verify(token, ENV.ACCESS_TOKEN_SECRET) as IPayload;
 
     if (decoded.sessionId) {
-      const activeSession = await redisClient.get(`active-session:${decoded.id}`);
+      const activeSession = await redisClient.get(
+        `active-session:${decoded.id}`
+      );
       if (!activeSession || activeSession !== decoded.sessionId) {
-        return res.status(401).json(new ApiError(401, "Session expired. You logged in from another device."));
+        return res
+          .status(401)
+          .json(
+            new ApiError(
+              401,
+              "Session expired. You logged in from another device."
+            )
+          );
       }
     }
 
