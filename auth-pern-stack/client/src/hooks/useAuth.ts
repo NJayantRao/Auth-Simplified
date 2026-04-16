@@ -110,7 +110,7 @@ export const useAuth = () => {
 
   const verifyEmail = async () => {
     try {
-      const res = await apiInstance.post("/users/profile");
+      const res = await apiInstance.post("/users/verify-email");
       console.log(res);
     } catch (error: any) {
       console.log(error?.response?.data || error);

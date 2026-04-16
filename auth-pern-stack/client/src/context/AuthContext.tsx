@@ -2,6 +2,7 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 
 export type User = {
   id: string;
+  name: string;
   email: string;
   role: string;
   isVerified: boolean;

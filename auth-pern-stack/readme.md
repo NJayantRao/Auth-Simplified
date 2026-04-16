@@ -24,75 +24,173 @@ A production-ready fullstack authentication boilerplate built with **React + Exp
 ## 🛠 Tech Stack
 
 ### Backend (`/server`)
-| Layer | Technology |
-|---|---|
-| Runtime | Node.js + TypeScript (`tsx`) |
-| Framework | Express 5 |
-| ORM | Prisma 7 (PostgreSQL) |
-| Session Store | Redis (ioredis) |
-| Auth | JWT (`jsonwebtoken`) + bcrypt |
-| Email | Nodemailer + Gmail OAuth2 + Mailgen |
-| Validation | Zod |
-| API Docs | Swagger UI Express |
+
+| Layer         | Technology                          |
+| ------------- | ----------------------------------- |
+| Runtime       | Node.js + TypeScript (`tsx`)        |
+| Framework     | Express 5                           |
+| ORM           | Prisma 7 (PostgreSQL)               |
+| Session Store | Redis (ioredis)                     |
+| Auth          | JWT (`jsonwebtoken`) + bcrypt       |
+| Email         | Nodemailer + Gmail OAuth2 + Mailgen |
+| Validation    | Zod                                 |
+| API Docs      | Swagger UI Express                  |
 
 ### Frontend (`/client`)
-| Layer | Technology |
-|---|---|
-| Framework | React 19 + TypeScript |
-| Build Tool | Vite 8 |
-| Routing | React Router 7 |
-| Styling | Tailwind CSS 4 + shadcn/ui |
-| HTTP Client | Axios |
-| Notifications | React Hot Toast |
+
+| Layer         | Technology                 |
+| ------------- | -------------------------- |
+| Framework     | React 19 + TypeScript      |
+| Build Tool    | Vite 8                     |
+| Routing       | React Router 7             |
+| Styling       | Tailwind CSS 4 + shadcn/ui |
+| HTTP Client   | Axios                      |
+| Notifications | React Hot Toast            |
 
 ### Infrastructure
-| Service | Tool |
-|---|---|
-| Database | PostgreSQL 16 |
-| Cache / Session | Redis Stack |
-| Orchestration | Docker Compose |
+
+| Service         | Tool           |
+| --------------- | -------------- |
+| Database        | PostgreSQL 16  |
+| Cache / Session | Redis Stack    |
+| Orchestration   | Docker Compose |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-Auth-Simplified/
-├── docker-compose.yml          # PostgreSQL + Redis Stack
-├── client/                     # React frontend
-│   ├── src/
-│   │   ├── context/
-│   │   │   └── AuthContext.tsx # Global auth state
-│   │   ├── hooks/
-│   │   │   └── useAuth.ts      # register, login, logout, getUser
-│   │   ├── pages/
-│   │   │   ├── Home.tsx
-│   │   │   ├── SignIn.tsx
-│   │   │   ├── SignUp.tsx
-│   │   │   └── Dashboard.tsx
-│   │   ├── services/
-│   │   │   └── auth.api.ts     # Axios instance
-│   │   └── App.tsx             # Routes + guards
-│   └── .env                    # VITE_BACKEND_URL
-└── server/                     # Express backend
-    ├── src/
-    │   ├── controllers/
-    │   │   ├── auth.controller.ts   # register, login, logout, verifyEmail, refreshToken
-    │   │   └── user.controller.ts   # getProfile, verifyUserEmail
-    │   ├── middlewares/
-    │   │   ├── auth-middleware.ts       # JWT verify + token generators
-    │   │   ├── rate-limit-middleware.ts # Redis rate limiter
-    │   │   └── zod-validation.ts        # Request body validation
-    │   ├── routes/
-    │   │   ├── auth.routes.ts      # /api/v1/auth/*
-    │   │   └── user.routes.ts      # /api/v1/users/*
-    │   ├── prisma/
-    │   │   └── schema.prisma       # User model + Role enum
-    │   ├── lib/                    # DB, Redis, Nodemailer, Swagger, bcrypt
-    │   ├── utils/                  # ApiError, ApiResponse, AsyncHandler
-    │   └── validators/
-    │       └── auth-schema.ts      # Zod schemas
-    └── .env                        # Server environment variables
+auth-pern-stack/
+├── .gitignore                  # Git ignore rules
+├── CHANGES.md                  # Changelog
+├── LICENSE                     # License file
+├── docker-compose.yml          # PostgreSQL 16 + Redis Stack services
+├── readme.md                   # This file
+│
+├── client/                     # React frontend (Vite + TypeScript)
+│   ├── .env                    # Client environment variables
+│   ├── .gitignore              # Client git ignore
+│   ├── components.json         # shadcn/ui components config
+│   ├── eslint.config.js        # ESLint configuration
+│   ├── index.html              # Entry HTML
+│   ├── package.json            # Dependencies & scripts
+│   ├── tsconfig.json           # TypeScript config
+│   ├── tsconfig.app.json       # App-specific TS config
+│   ├── tsconfig.node.json      # Node-specific TS config
+│   ├── vite.config.ts          # Vite configuration
+│   ├── public/                 # Static assets
+│   └── src/
+│       ├── App.tsx             # Main app component with routes
+│       ├── main.tsx            # React entry point
+│       ├── index.css           # Global styles
+│       │
+│       ├── components/
+│       │   ├── Protected.tsx    # Route protection wrapper
+│       │   └── ui/             # shadcn/ui components
+│       │       ├── animated-theme-toggler.tsx
+│       │       ├── avatar.tsx
+│       │       ├── badge.tsx
+│       │       ├── button.tsx
+│       │       ├── card.tsx
+│       │       ├── dialog.tsx
+│       │       ├── dropdown-menu.tsx
+│       │       ├── field.tsx
+│       │       ├── input.tsx
+│       │       ├── label.tsx
+│       │       ├── separator.tsx
+│       │       ├── spinner.tsx
+│       │       └── tabs.tsx
+│       │
+│       ├── context/
+│       │   ├── AuthContext.tsx # Global authentication state
+│       │   └── ThemeContext.tsx # Dark/Light theme state
+│       │
+│       ├── hooks/
+│       │   └── useAuth.ts      # Custom hook for auth operations
+│       │
+│       ├── lib/
+│       │   └── utils.ts        # Utility functions (cn, etc.)
+│       │
+│       ├── pages/
+│       │   ├── Home.tsx        # Home/Landing page
+│       │   ├── SignIn.tsx      # Login page
+│       │   ├── SignUp.tsx      # Registration page
+│       │   ├── Dashboard.tsx   # Protected user dashboard
+│       │   └── NotFound.tsx    # 404 page
+│       │
+│       └── services/
+│           └── auth.api.ts     # Axios API client configuration
+│
+└── server/                     # Express backend (Node.js + TypeScript)
+    ├── .env                    # Server environment variables
+    ├── .env.sample             # Environment template
+    ├── .prettierignore         # Prettier ignore rules
+    ├── .prettierrc             # Prettier configuration
+    ├── Dockerfile              # Docker container image
+    ├── package.json            # Dependencies & scripts
+    ├── prisma.config.ts        # Prisma ORM configuration
+    ├── swagger-output.json     # Generated Swagger API docs
+    ├── tsconfig.json           # TypeScript configuration
+    │
+    └── src/
+        ├── .dockerignore       # Docker build ignore rules
+        ├── app.ts              # Express app setup & middleware
+        ├── server.ts           # Server entry point
+        │
+        ├── controllers/        # Business logic layer
+        │   ├── auth.controller.ts   # Authentication endpoints
+        │   ├── user.controller.ts   # User profile endpoints
+        │   └── root.controller.ts   # Root/health check endpoints
+        │
+        ├── routes/             # API route definitions
+        │   ├── auth.routes.ts      # POST /api/v1/auth/*
+        │   ├── user.routes.ts      # GET /api/v1/users/*
+        │   └── root.routes.ts      # GET /api/v1/*
+        │
+        ├── middlewares/        # Express middleware
+        │   ├── auth-middleware.ts       # JWT verification & token generation
+        │   ├── rate-limit-middleware.ts # Redis-backed rate limiter
+        │   └── zod-validation.ts        # Request body validation
+        │
+        ├── lib/                # Third-party integrations & utilities
+        │   ├── bcrypt.ts       # Password hashing utilities
+        │   ├── env.ts          # Environment variable validation
+        │   ├── mailgen.ts      # Email template generation
+        │   ├── nodemailer.ts   # Email sending configuration
+        │   ├── prisma.ts       # Prisma client singleton
+        │   ├── redis.ts        # Redis client setup
+        │   └── swagger.ts      # Swagger/OpenAPI documentation
+        │
+        ├── utils/              # Helper functions & utilities
+        │   ├── api-error.ts        # Custom API error class
+        │   ├── api-response.ts     # Standard API response format
+        │   ├── async-handler.ts    # Async error handling wrapper
+        │   ├── constants.ts        # Application constants
+        │   ├── github.ts           # GitHub OAuth utilities
+        │   ├── google.ts           # Google OAuth utilities
+        │   ├── send-mails.ts       # Email sending helpers
+        │   └── session-id.ts       # Session ID generation
+        │
+        ├── validators/         # Input validation schemas
+        │   └── auth-schema.ts  # Zod validation schemas for auth endpoints
+        │
+        ├── emails/             # Email templates
+        │   ├── registration-mail.ts # Welcome/registration email
+        │   └── verify-email.ts      # Email verification template
+        │
+        ├── types/              # TypeScript type definitions
+        │   └── jwt.types.ts    # JWT payload types
+        │
+        └── prisma/             # Database configuration
+            ├── schema.prisma   # Prisma data model & migrations
+            ├── migration_lock.toml
+            └── migrations/     # Database migration history
+                ├── 20260409143821_init_migration/
+                │   └── migration.sql
+                ├── 20260409152441_updated_user_model/
+                │   └── migration.sql
+                └── 20260415115530_added_oauth_provider/
+                    └── migration.sql
 ```
 
 ---
@@ -113,6 +211,7 @@ docker compose up -d
 ```
 
 This starts:
+
 - **PostgreSQL 16** on port `5431`
 - **Redis Stack** on ports `6379` (Redis) and `8001` (RedisInsight UI)
 
@@ -205,19 +304,19 @@ VITE_BACKEND_URL=http://localhost:5000/api/v1
 
 ### Auth Routes — `/api/v1/auth`
 
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| `POST` | `/register` | Public | Register new user, sends verification email |
-| `POST` | `/login` | Public | Login, returns tokens in cookies |
-| `POST` | `/logout` | 🔒 Private | Blacklists refresh token, clears cookies |
-| `GET` | `/verify-email` | Public | Verifies email via token link (`?id=&verifyToken=`) |
-| `POST` | `/refresh-token` | 🔒 Private | Issues new access token from valid refresh token |
+| Method | Endpoint         | Access     | Description                                         |
+| ------ | ---------------- | ---------- | --------------------------------------------------- |
+| `POST` | `/register`      | Public     | Register new user, sends verification email         |
+| `POST` | `/login`         | Public     | Login, returns tokens in cookies                    |
+| `POST` | `/logout`        | 🔒 Private | Blacklists refresh token, clears cookies            |
+| `GET`  | `/verify-email`  | Public     | Verifies email via token link (`?id=&verifyToken=`) |
+| `POST` | `/refresh-token` | 🔒 Private | Issues new access token from valid refresh token    |
 
 ### User Routes — `/api/v1/users`
 
-| Method | Endpoint | Access | Description |
-|--------|----------|--------|-------------|
-| `GET` | `/profile` | 🔒 Private | Returns authenticated user's profile |
+| Method | Endpoint        | Access     | Description                           |
+| ------ | --------------- | ---------- | ------------------------------------- |
+| `GET`  | `/profile`      | 🔒 Private | Returns authenticated user's profile  |
 | `POST` | `/verify-email` | 🔒 Private | Trigger re-send of verification email |
 
 ---
@@ -287,22 +386,22 @@ Email Verification
 
 ### Server
 
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Start dev server with hot reload (`tsx watch`) |
-| `npm run build` | Compile TypeScript to `/dist` |
-| `npm start` | Run compiled production build |
-| `npm run swagger` | Regenerate `swagger-output.json` |
-| `npm run format` | Format code with Prettier |
+| Script            | Description                                    |
+| ----------------- | ---------------------------------------------- |
+| `npm run dev`     | Start dev server with hot reload (`tsx watch`) |
+| `npm run build`   | Compile TypeScript to `/dist`                  |
+| `npm start`       | Run compiled production build                  |
+| `npm run swagger` | Regenerate `swagger-output.json`               |
+| `npm run format`  | Format code with Prettier                      |
 
 ### Client
 
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Start Vite dev server |
-| `npm run build` | Type-check + build for production |
-| `npm run preview` | Preview production build locally |
-| `npm run lint` | Run ESLint |
+| Script            | Description                       |
+| ----------------- | --------------------------------- |
+| `npm run dev`     | Start Vite dev server             |
+| `npm run build`   | Type-check + build for production |
+| `npm run preview` | Preview production build locally  |
+| `npm run lint`    | Run ESLint                        |
 
 ---
 
@@ -322,8 +421,8 @@ This template is intentionally minimal on business logic so it's easy to build o
 
 ```yaml
 # docker-compose.yml
-postgres:   localhost:5431  (PostgreSQL 16)
-redis:      localhost:6379  (Redis)
+postgres: localhost:5431  (PostgreSQL 16)
+redis: localhost:6379  (Redis)
 redisinsight: localhost:8001 (Redis UI)
 ```
 
