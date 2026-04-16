@@ -15,9 +15,6 @@ import { baseOptions, refreshTokenOptions } from "../utils/constants.js";
 import { sendRegistrationMail } from "../utils/send-mails.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { generateCodeVerifier, generateState, decodeIdToken } from "arctic";
-import { google } from "../utils/google.js";
-import { github } from "../utils/github.js";
 
 /**
  * @route POST /api/v1/auth/register
@@ -41,21 +38,33 @@ export const registerUser = AsyncHandler(async (req: any, res: any) => {
   //hash password
   const hashedPassword = await hashPassword(password);
 
-  //create user in db
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-    },
-    select: {
-      id: true,
-      email: true,
-      role: true,
-      isVerified: true,
-      createdAt: true,
-      updatedAt: true,
-    },
+  // create user and local oauth provider in one transaction
+  const user = await prisma.$transaction(async (tx) => {
+    const createdUser = await tx.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+      },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        isVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    await tx.oAuthProvider.create({
+      data: {
+        userId: createdUser.id,
+        providerName: "LOCAL",
+        providerUserId: createdUser.id,
+      },
+    });
+
+    return createdUser;
   });
 
   //jwt payload
@@ -138,7 +147,11 @@ export const loginUser = AsyncHandler(async (req: any, res: any) => {
   if (!user) {
     return res.status(401).json(new ApiError(401, "Invalid Credentials"));
   }
-
+  if (!user.password) {
+    return res
+      .status(400)
+      .json(new ApiError(400, "Please login with your OAuth provider"));
+  }
   //compare password
   const isMatched = await comparePassword(password, user.password);
   if (!isMatched) {
@@ -191,280 +204,6 @@ export const loginUser = AsyncHandler(async (req: any, res: any) => {
     })
   );
 });
-
-export const googleLogin = AsyncHandler(async (req: any, res: any) => {
-  const state = generateState();
-  const codeVerifier = generateCodeVerifier();
-  const scopes = ["openid", "profile", "email"];
-  const url = google.createAuthorizationURL(state, codeVerifier, scopes);
-  res.cookie("google_oauth_state", state, baseOptions);
-  res.cookie("google_oauth_codeVerifier", codeVerifier, baseOptions);
-  res.redirect(url.toString());
-});
-
-export const getGoogleLoginCallback = AsyncHandler(
-  async (req: any, res: any) => {
-    const { code, state } = req.query;
-    console.log(code);
-    console.log(state);
-
-    const storedState = req.cookies.google_oauth_state;
-    const codeVerifier = req.cookies.google_oauth_codeVerifier;
-
-    if (
-      !code ||
-      !state ||
-      !storedState ||
-      !codeVerifier ||
-      state != storedState
-    ) {
-      return res.redirect(
-        "http://localhost:5173/sign-in?error=oauth_state_mismatch"
-      );
-    }
-    try {
-      let tokens = await google.validateAuthorizationCode(code, codeVerifier);
-
-      const idToken = tokens.idToken();
-      const claims: any = decodeIdToken(idToken);
-
-      const googleUserId = claims.sub;
-      const name = claims.name;
-      const email = claims.email;
-
-      // 1️⃣ Check if OAuth account exists
-
-      let oauthAccount = await prisma.oAuthProvider.findUnique({
-        where: {
-          providerName_providerUserId: {
-            providerName: "GOOGLE",
-            providerUserId: googleUserId,
-          },
-        },
-      });
-
-      let user;
-
-      if (oauthAccount) {
-        // existing user login
-        user = await prisma.user.findUnique({
-          where: { id: oauthAccount.userId },
-        });
-      } else {
-        user = await prisma.$transaction(async (tx) => {
-          // 2️⃣ Check if email already exists
-          let existingUser = await tx.user.findUnique({
-            where: { email },
-          });
-
-          if (!existingUser) {
-            // 3️⃣ Create new user
-            existingUser = await tx.user.create({
-              data: {
-                name,
-                email,
-                password: "",
-                isVerified: true,
-              },
-            });
-          }
-
-          // 4️⃣ Create OAuth mapping
-          await tx.oAuthProvider.create({
-            data: {
-              userId: existingUser.id,
-              providerName: "GOOGLE",
-              providerUserId: googleUserId,
-            },
-          });
-
-          return existingUser;
-        });
-      }
-
-      if (!user)
-        return res.redirect(
-          "http://localhost:5173/sign-in?error=user_creation_failed"
-        );
-
-      // 5️⃣ Generate JWT like normal login
-      const sessionId = crypto.randomBytes(16).toString("hex");
-      const payload: IPayload = {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        sessionId,
-      };
-
-      const accessToken = generateAccessToken(payload);
-      const refreshToken = generateRefreshToken(payload);
-
-      // set refresh token in redis
-      await redisClient.set(
-        `refresh-token:${user.id}`,
-        refreshToken,
-        "EX",
-        7 * 24 * 60 * 60
-      );
-      // set active session ID
-      await redisClient.set(
-        `active-session:${user.id}`,
-        sessionId,
-        "EX",
-        7 * 24 * 60 * 60
-      );
-
-      res.cookie("accessToken", accessToken, baseOptions);
-      res.cookie("refreshToken", refreshToken, refreshTokenOptions);
-
-      // 6️⃣ Redirect to frontend dashboard
-      return res.redirect("http://localhost:5173/dashboard");
-    } catch (error) {
-      console.log("Google OAuth Error:", error);
-      return res.redirect(
-        "http://localhost:5173/sign-in?error=google_oauth_failed"
-      );
-    }
-  }
-);
-
-export const githubLogin = AsyncHandler(async (req: any, res: any) => {
-  const state = generateState();
-  const url = github.createAuthorizationURL(state, ["user:email"]);
-  res.cookie("github_oauth_state", state, baseOptions);
-  res.redirect(url.toString());
-});
-
-export const getGithubLoginCallback = AsyncHandler(
-  async (req: any, res: any) => {
-    const { code, state } = req.query;
-    console.log("Github Code:", code);
-    console.log("Github State:", state);
-
-    const storedState = req.cookies.github_oauth_state;
-
-    if (!code || !state || !storedState || state != storedState) {
-      return res.redirect(
-        "http://localhost:5173/sign-in?error=oauth_state_mismatch"
-      );
-    }
-
-    try {
-      let tokens = await github.validateAuthorizationCode(code);
-      const accessToken = tokens.accessToken();
-
-      const githubUserResponse = await fetch("https://api.github.com/user", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      const githubUser: any = await githubUserResponse.json();
-
-      const githubUserId = String(githubUser.id);
-      const name = githubUser.name || githubUser.login;
-
-      let email = githubUser.email;
-
-      if (!email) {
-        const emailsResponse = await fetch(
-          "https://api.github.com/user/emails",
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-        const emails: any = await emailsResponse.json();
-        const primaryEmail = emails.find((e: any) => e.primary) ?? emails[0];
-        email = primaryEmail.email;
-      }
-
-      let oauthAccount = await prisma.oAuthProvider.findUnique({
-        where: {
-          providerName_providerUserId: {
-            providerName: "GITHUB",
-            providerUserId: githubUserId,
-          },
-        },
-      });
-
-      let user;
-
-      if (oauthAccount) {
-        user = await prisma.user.findUnique({
-          where: { id: oauthAccount.userId },
-        });
-      } else {
-        user = await prisma.$transaction(async (tx) => {
-          let existingUser = await tx.user.findUnique({
-            where: { email },
-          });
-
-          if (!existingUser) {
-            existingUser = await tx.user.create({
-              data: {
-                name,
-                email,
-                password: "",
-                isVerified: true,
-              },
-            });
-          }
-
-          await tx.oAuthProvider.create({
-            data: {
-              userId: existingUser.id,
-              providerName: "GITHUB",
-              providerUserId: githubUserId,
-            },
-          });
-
-          return existingUser;
-        });
-      }
-
-      if (!user) {
-        return res.redirect(
-          "http://localhost:5173/sign-in?error=user_creation_failed"
-        );
-      }
-
-      const sessionId = crypto.randomBytes(16).toString("hex");
-      const payload: IPayload = {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        sessionId,
-      };
-
-      const loginAccessToken = generateAccessToken(payload);
-      const refreshToken = generateRefreshToken(payload);
-
-      await redisClient.set(
-        `refresh-token:${user.id}`,
-        refreshToken,
-        "EX",
-        7 * 24 * 60 * 60
-      );
-      await redisClient.set(
-        `active-session:${user.id}`,
-        sessionId,
-        "EX",
-        7 * 24 * 60 * 60
-      );
-
-      res.cookie("accessToken", loginAccessToken, baseOptions);
-      res.cookie("refreshToken", refreshToken, refreshTokenOptions);
-
-      return res.redirect("http://localhost:5173/dashboard");
-    } catch (error) {
-      console.log("GitHub OAuth Error:", error);
-      return res.redirect(
-        "http://localhost:5173/sign-in?error=github_oauth_failed"
-      );
-    }
-  }
-);
 
 /**
  * @route POST /api/v1/auth/logout
