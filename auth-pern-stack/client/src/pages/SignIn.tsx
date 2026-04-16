@@ -15,7 +15,6 @@ import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 import { useAuth } from "@/hooks/useAuth";
 import { Spinner } from "@/components/ui/spinner";
-import apiInstance from "@/services/auth.api";
 
 const SignIn = () => {
   const [email, setEmail] = useState<string>("");
@@ -147,7 +146,7 @@ const SignIn = () => {
                       variant="outline"
                       type="button"
                       className="h-10 gap-2 font-medium"
-                       onClick={() => {
+                      onClick={() => {
                         window.location.href =
                           "http://localhost:5000/api/v1/auth/github";
                       }}

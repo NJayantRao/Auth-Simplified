@@ -7,6 +7,8 @@ import { useAuth } from "./hooks/useAuth";
 import Protected from "./components/Protected";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const App = () => {
   const { user, isInitialized, getUser } = useAuth();
@@ -28,6 +30,14 @@ const App = () => {
       <Route
         path="/sign-up"
         element={user ? <Navigate to={"/dashboard"} /> : <SignUp />}
+      />
+      <Route
+        path="/forgot-password"
+        element={user ? <Navigate to={"/dashboard"} /> : <ForgotPassword />}
+      />
+      <Route
+        path="/reset-password"
+        element={user ? <Navigate to={"/dashboard"} /> : <ResetPassword />}
       />
       <Route element={<Protected />}>
         <Route path="/dashboard" element={<Dashboard />} />

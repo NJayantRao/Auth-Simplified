@@ -99,9 +99,9 @@ export const useAuth = () => {
         return;
       }
       console.log(error?.response?.data || error);
-      toast.error(
-        error?.response?.data?.message || "Failed to fetch user data",
-      );
+      // toast.error(
+      //   error?.response?.data?.message || "Failed to fetch user data",
+      // );
     } finally {
       setIsLoading(false);
       setIsInitialized(true);

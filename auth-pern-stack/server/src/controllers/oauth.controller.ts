@@ -155,7 +155,7 @@ export const githubLogin = AsyncHandler(async (req: any, res: any) => {
   const state = generateState();
   const url = github.createAuthorizationURL(state, ["user:email"]);
   await redisClient.set(
-    `google-oauth-state:${state}`,
+    `oauth:github:${state}`,
     "VALID_GITHUB_STATE",
     "EX",
     5 * 60

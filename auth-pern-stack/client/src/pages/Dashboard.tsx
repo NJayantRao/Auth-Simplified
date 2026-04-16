@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  // CardFooter,
+  CardFooter,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-// import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
+import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import {
   LayoutDashboard,
@@ -38,19 +38,41 @@ import {
   Search,
 } from "lucide-react";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import apiInstance from "@/services/auth.api";
+import toast from "react-hot-toast";
 
 export default function Dashboard() {
-  const { user, logout, isLoading, verifyEmail, getUser } = useAuth();
+  const { user, logout, isLoading, verifyEmail } = useAuth();
   // const navigate = useNavigate();
   const [isVerifying, setIsVerifying] = useState(false);
-  // const [isChangingPass, setIsChangingPass] = useState(false);
+  const [isChangingPass, setIsChangingPass] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  useEffect(() => {
-    if (!user) {
-      getUser();
-      console.log("hitted");
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      return toast.error("New passwords do not match");
     }
-  }, [user]);
+    try {
+      setIsChangingPass(true);
+      const res = await apiInstance.patch("/users/change-password", {
+        oldPassword,
+        newPassword,
+      });
+      toast.success(res.data?.message || "Password changed successfully");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Failed to change password",
+      );
+    } finally {
+      setIsChangingPass(false);
+    }
+  };
   //logout
   const handleLogout = (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,7 +165,7 @@ export default function Dashboard() {
                 className="h-9 w-[150px] rounded-md bg-muted/40 pl-9 md:w-[200px] lg:w-[250px]"
               />
             </div>
-            
+
             <AnimatedThemeToggler className="p-2 rounded-full hover:bg-muted/40" />
 
             <DropdownMenu>
@@ -411,7 +433,7 @@ export default function Dashboard() {
                   </Card>
                   {/* Change Password Section */}
 
-                  {/* <Card>
+                  <Card>
                     <CardHeader>
                       <CardTitle>Change Password</CardTitle>
                       <CardDescription>
@@ -420,8 +442,7 @@ export default function Dashboard() {
                     </CardHeader>
                     <form
                       onSubmit={(e: React.FormEvent) => {
-                        e.preventDefault();
-                        console.log("change password clicked");
+                        handleChangePassword(e);
                       }}
                     >
                       <CardContent className="space-y-4">
@@ -434,8 +455,12 @@ export default function Dashboard() {
                               id="current-password"
                               type="password"
                               placeholder="Enter current password"
+                              value={oldPassword}
                               required
                               className="max-w-md"
+                              onChange={(e)=>{
+                                setOldPassword(e.target.value)
+                              }}
                             />
                           </Field>
                           <Field>
@@ -446,8 +471,12 @@ export default function Dashboard() {
                               id="new-password"
                               type="password"
                               placeholder="Enter new password"
+                              value={newPassword}
                               required
                               className="max-w-md"
+                              onChange={(e)=>{
+                                setNewPassword(e.target.value)
+                              }}
                             />
                           </Field>
                           <Field>
@@ -458,8 +487,12 @@ export default function Dashboard() {
                               id="confirm-password"
                               type="password"
                               placeholder="Confirm new password"
+                              value={confirmPassword}
                               required
                               className="max-w-md"
+                              onChange={(e)=>{
+                                setConfirmPassword(e.target.value)
+                              }}
                             />
                           </Field>
                         </FieldGroup>
@@ -477,7 +510,7 @@ export default function Dashboard() {
                         </Button>
                       </CardFooter>
                     </form>
-                  </Card> */}
+                  </Card>
                 </div>
               </TabsContent>
             </Tabs>
