@@ -1,4 +1,3 @@
-import { use } from "react";
 import { comparePassword, hashPassword } from "../lib/bcrypt.js";
 import { ENV } from "../lib/env.js";
 import { prisma } from "../lib/prisma.js";
@@ -12,7 +11,7 @@ import ApiError from "../utils/api-error.js";
 import ApiResponse from "../utils/api-response.js";
 import AsyncHandler from "../utils/async-handler.js";
 import { baseOptions, refreshTokenOptions } from "../utils/constants.js";
-import { sendRegistrationMail } from "../utils/send-mails.js";
+import { sendOtpMail, sendRegistrationMail } from "../utils/send-mails.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 
@@ -21,7 +20,7 @@ import jwt from "jsonwebtoken";
  * @description controller to register a new user
  * @access public
  */
-export const registerUser = AsyncHandler(async (req: any, res: any) => {
+const registerUser = AsyncHandler(async (req: any, res: any) => {
   // get data from request body
   const { name, email, password } = req.body;
 
@@ -123,7 +122,7 @@ export const registerUser = AsyncHandler(async (req: any, res: any) => {
  * @description controller to login a user
  * @access public
  */
-export const loginUser = AsyncHandler(async (req: any, res: any) => {
+const loginUser = AsyncHandler(async (req: any, res: any) => {
   // get data from request body
   const { email, password } = req.body;
 
@@ -210,7 +209,7 @@ export const loginUser = AsyncHandler(async (req: any, res: any) => {
  * @description controller to login a user
  * @access private
  */
-export const logoutUser = AsyncHandler(async (req: any, res: any) => {
+const logoutUser = AsyncHandler(async (req: any, res: any) => {
   const { id } = req.user;
 
   const refreshToken = req?.cookies?.refreshToken;
@@ -241,7 +240,7 @@ export const logoutUser = AsyncHandler(async (req: any, res: any) => {
  * @description controller to Verify email
  * @access public
  */
-export const verifyEmail = AsyncHandler(async (req: any, res: any) => {
+const verifyEmail = AsyncHandler(async (req: any, res: any) => {
   const { id, verifyToken } = req.query;
 
   const storedVerifyToken = await redisClient.get(`verify-token:${id}`);
@@ -261,11 +260,90 @@ export const verifyEmail = AsyncHandler(async (req: any, res: any) => {
 });
 
 /**
+ * @route POST /api/v1/auth/forgot-password
+ * @description controller to forgot password
+ * @access public
+ */
+const forgotPassword = AsyncHandler(async (req: any, res: any) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json(new ApiError(400, "All fields are required"));
+  }
+  //if not existing user
+  const isExistingUser = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (!isExistingUser) {
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, "If the email is registered, an OTP has been sent")
+      );
+  }
+
+  //generate otp & store in redis
+  const otp = crypto.randomInt(100000, 1000000);
+
+  await redisClient.set(`verify-otp:${email}`, otp.toString(), "EX", 10 * 60);
+  sendOtpMail(email, otp.toString());
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, "If the email is registered, an OTP has been sent")
+    );
+});
+
+/**
+ * @route POST /api/v1/auth/reset-password
+ * @description controller to reset password
+ * @access public
+ */
+const resetPassword = AsyncHandler(async (req: any, res: any) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (!email || !otp || !newPassword) {
+    return res.status(400).json(new ApiError(400, "All fields are required"));
+  }
+  //if not existing user
+  const isExistingUser = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  const storedOtp = await redisClient.get(`verify-otp:${email}`);
+
+  if (!isExistingUser || !storedOtp || otp !== storedOtp) {
+    await redisClient.del(`verify-otp:${email}`);
+    return res.status(400).json(new ApiError(400, "Invalid email or OTP"));
+  }
+
+  //hash new password
+  const hashedPassword = await hashPassword(newPassword);
+
+  await prisma.user.update({
+    where: { email },
+    data: { password: hashedPassword },
+  });
+
+  await redisClient.del(`verify-otp:${email}`);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Password reset successfully."));
+});
+
+/**
  * @route POST /auth/refresh-token
  * @desc Refresh access token controller
  * @access public
  */
-export const refreshAccessToken = async (req: any, res: any) => {
+const refreshAccessToken = async (req: any, res: any) => {
   try {
     const authorization = req?.headers?.authorization;
     const refreshToken =
@@ -332,4 +410,14 @@ export const refreshAccessToken = async (req: any, res: any) => {
     }
     return res.status(401).json(new ApiError(401, "Unauthorized request"));
   }
+};
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  verifyEmail,
+  forgotPassword,
+  resetPassword,
+  refreshAccessToken,
 };

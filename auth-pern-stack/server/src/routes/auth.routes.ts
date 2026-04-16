@@ -1,13 +1,20 @@
 import express from "express";
 import {
+  forgotPassword,
   loginUser,
   logoutUser,
   refreshAccessToken,
   registerUser,
+  resetPassword,
   verifyEmail,
 } from "../controllers/auth.controller.js";
 import { validateData } from "../middlewares/zod-validation.js";
-import { loginSchema, registerSchema } from "../validators/auth-schema.js";
+import {
+  forgotPasswordSchema,
+  loginSchema,
+  registerSchema,
+  resetPasswordSchema,
+} from "../validators/auth-schema.js";
 import { authMiddleware } from "../middlewares/auth-middleware.js";
 import {
   getGithubLoginCallback,
@@ -22,6 +29,16 @@ router.post("/register", validateData(registerSchema), registerUser);
 router.post("/login", validateData(loginSchema), loginUser);
 router.post("/logout", authMiddleware, logoutUser);
 router.get("/verify-email", verifyEmail);
+router.post(
+  "/forgot-password",
+  validateData(forgotPasswordSchema),
+  forgotPassword
+);
+router.post(
+  "/reset-password",
+  validateData(resetPasswordSchema),
+  resetPassword
+);
 router.post("/refresh-token", refreshAccessToken);
 router.get("/google", googleLogin);
 router.get("/google/callback", getGoogleLoginCallback);
