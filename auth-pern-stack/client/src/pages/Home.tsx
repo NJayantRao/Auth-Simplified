@@ -1,8 +1,7 @@
-import React from "react";
-import { Check, Copy } from "lucide-react";
+import React, { useState } from "react";
+import { Check, Copy, Menu, X } from "lucide-react";
 import { Link } from "react-router";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
-import { useState } from "react";
 import {
   badgeColors,
   DEGIT_CMD,
@@ -45,6 +44,8 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export default function Home() {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* ── Navbar ── */}
@@ -95,6 +96,57 @@ export default function Home() {
             >
               Get started
             </Link>
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-md border border-border bg-muted/30 p-2 text-muted-foreground transition-colors hover:bg-muted md:hidden"
+              onClick={() => setMobileNavOpen((open) => !open)}
+              aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileNavOpen}
+            >
+              {mobileNavOpen ? (
+                <X className="size-5" />
+              ) : (
+                <Menu className="size-5" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div
+          className={`md:hidden border-t border-border bg-background/95 px-6 py-4 transition-all duration-150 ${
+            mobileNavOpen ? "block" : "hidden"
+          }`}
+        >
+          <div className="flex flex-col gap-3">
+            <a
+              href="#features"
+              onClick={() => setMobileNavOpen(false)}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Features
+            </a>
+            <a
+              href="#flows"
+              onClick={() => setMobileNavOpen(false)}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Auth Flows
+            </a>
+            <a
+              href="#how-it-works"
+              onClick={() => setMobileNavOpen(false)}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              How it works
+            </a>
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              GitHub
+            </a>
           </div>
         </div>
       </header>
@@ -306,7 +358,9 @@ export default function Home() {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-border/60"><Footer /></footer>
+      <footer className="border-t border-border/60">
+        <Footer />
+      </footer>
     </div>
   );
 }
