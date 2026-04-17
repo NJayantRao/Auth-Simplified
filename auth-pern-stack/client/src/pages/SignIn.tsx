@@ -15,12 +15,13 @@ import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 import { useAuth } from "@/hooks/useAuth";
 import { Spinner } from "@/components/ui/spinner";
+import { useNavigate } from "react-router";
 
 const SignIn = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
-
+  const navigate = useNavigate();
   const { isLoading, login } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -83,12 +84,14 @@ const SignIn = () => {
                       <FieldLabel htmlFor="signin-password">
                         Password
                       </FieldLabel>
-                      <a
-                        href="#"
-                        className="text-xs text-muted-foreground underline-offset-4 hover:underline hover:text-foreground transition-colors"
+                      <button
+                        className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground transition-colors cursor-pointer"
+                        onClick={() => {
+                          navigate("/forgot-password");
+                        }}
                       >
                         Forgot password?
-                      </a>
+                      </button>
                     </div>
                     <div className="relative">
                       <Input
