@@ -1,4 +1,0 @@
-[build]
-  base = "auth-pern-stack/client"
-  command = "npm run build"
-  publish = "dist"

@@ -67,7 +67,7 @@ export default function Dashboard() {
       setConfirmPassword("");
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.message || "Failed to change password",
+        error?.response?.data?.message || "Failed to change password"
       );
     } finally {
       setIsChangingPass(false);
@@ -311,7 +311,7 @@ export default function Dashboard() {
                               className="w-full bg-foreground/90 rounded-t-sm hover:opacity-80 transition-opacity"
                               style={{ height: `${h}%` }}
                             />
-                          ),
+                          )
                         )}
                       </div>
                     </CardContent>
@@ -458,8 +458,8 @@ export default function Dashboard() {
                               value={oldPassword}
                               required
                               className="max-w-md"
-                              onChange={(e)=>{
-                                setOldPassword(e.target.value)
+                              onChange={(e) => {
+                                setOldPassword(e.target.value);
                               }}
                             />
                           </Field>
@@ -474,8 +474,8 @@ export default function Dashboard() {
                               value={newPassword}
                               required
                               className="max-w-md"
-                              onChange={(e)=>{
-                                setNewPassword(e.target.value)
+                              onChange={(e) => {
+                                setNewPassword(e.target.value);
                               }}
                             />
                           </Field>
@@ -490,8 +490,8 @@ export default function Dashboard() {
                               value={confirmPassword}
                               required
                               className="max-w-md"
-                              onChange={(e)=>{
-                                setConfirmPassword(e.target.value)
+                              onChange={(e) => {
+                                setConfirmPassword(e.target.value);
                               }}
                             />
                           </Field>

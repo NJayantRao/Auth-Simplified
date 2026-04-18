@@ -27,7 +27,7 @@ const SignIn = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     login({ email, password });
-    console.log("Form submitted with:", { email, password });
+    // console.log("Form submitted with:", { email, password });
   };
 
   if (isLoading) {
@@ -69,7 +69,7 @@ const SignIn = () => {
                       }}
                       onInvalid={(e: React.InvalidEvent<HTMLInputElement>) => {
                         (e.target as HTMLInputElement).setCustomValidity(
-                          "Enter Valid E-Mail ID",
+                          "Enter Valid E-Mail ID"
                         );
                       }}
                       onInput={(e: React.FormEvent<HTMLInputElement>) => {
@@ -138,8 +138,7 @@ const SignIn = () => {
                       type="button"
                       className="h-10 gap-2 font-medium"
                       onClick={() => {
-                        window.location.href =
-                          "http://localhost:5000/api/v1/auth/google";
+                        window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/google`;
                       }}
                     >
                       <FcGoogle />
@@ -150,8 +149,7 @@ const SignIn = () => {
                       type="button"
                       className="h-10 gap-2 font-medium"
                       onClick={() => {
-                        window.location.href =
-                          "http://localhost:5000/api/v1/auth/github";
+                        window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/github`;
                       }}
                     >
                       <FaGithub />

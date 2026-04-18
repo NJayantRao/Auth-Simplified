@@ -7,12 +7,13 @@ import cookieParser from "cookie-parser";
 import { rateLimiter } from "./middlewares/rate-limit-middleware.js";
 import { userRouter } from "./routes/user.routes.js";
 import cors from "cors";
+import { ENV } from "./lib/env.js";
 
 const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: `${ENV.FRONTEND_URL}`,
     methods: ["POST", "GET", "PUT", "DELETE", "PATCH", "OPTIONS"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],

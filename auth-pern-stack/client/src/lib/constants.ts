@@ -164,4 +164,4 @@ const GITHUB_URL = "https://github.com/NJayantRao/Auth-Simplified";
 
 const DEGIT_CMD = "npx degit NJayantRao/Auth-Simplified/auth-pern-stack my-app";
 
-export { features, stack, flows, steps, GITHUB_URL, DEGIT_CMD,badgeColors };
+export { features, stack, flows, steps, GITHUB_URL, DEGIT_CMD, badgeColors };

@@ -11,15 +11,14 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
 const App = () => {
-  const { user, isInitialized, getUser } = useAuth();
+  const { user, getUser } = useAuth();
 
   // Initialize user on app mount
   useEffect(() => {
     getUser();
   }, []);
 
-  console.log("User:", user);
-  console.log("Is Initialized:", isInitialized);
+  // console.log("User:", user);
   return (
     <Routes>
       <Route path="/" element={<Home />} />

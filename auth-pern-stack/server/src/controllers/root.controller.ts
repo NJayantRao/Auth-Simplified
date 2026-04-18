@@ -7,19 +7,19 @@ import ApiResponse from "../utils/api-response.js";
  * @description Root controller to check server status
  * @access public
  */
-export const rootController = AsyncHandler(
-  async (_req: Request, res: Response) => {
-    res.status(200).json(new ApiResponse(200, "Server up n running..."));
-  }
-);
+const rootController = AsyncHandler(async (_req: Request, res: Response) => {
+  res.status(200).json(new ApiResponse(200, "Server up n running..."));
+});
 
 /**
  * @route GET /health-check
  * @description Health check controller to verify server health
  * @access public
  */
-export const healthCheckController = AsyncHandler(
+const healthCheckController = AsyncHandler(
   async (_req: Request, res: Response) => {
     res.status(200).json(new ApiResponse(200, "Server is running healthy..."));
   }
 );
+
+export { rootController, healthCheckController };

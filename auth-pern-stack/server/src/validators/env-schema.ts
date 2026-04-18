@@ -7,6 +7,10 @@ const envSchema = z.object({
     .string()
     .url()
     .min(1, { message: "FRONTEND_URL is required." }),
+  BACKEND_URL: z
+    .string()
+    .url()
+    .min(1, { message: "FRONTEND_URL is required." }),
   DATABASE_URL: z.string().min(1, { message: "DATABASE_URL is required." }),
   REDIS_URL: z.string().min(1, { message: "REDIS_URL is required." }),
   GOOGLE_CLIENT_ID: z

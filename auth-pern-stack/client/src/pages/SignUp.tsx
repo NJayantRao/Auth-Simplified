@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { Spinner } from "@/components/ui/spinner";
 
 const SignUp = () => {
   const [name, setName] = useState<string>("");
@@ -26,11 +27,11 @@ const SignUp = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     register({ name, email, password });
-    console.log("Form submitted with:", { name, email, password });
+    // console.log("Form submitted with:", { name, email, password });
   };
 
   if (isLoading) {
-    return <div>Loading</div>;
+    return <Spinner />;
   }
 
   return (
@@ -81,7 +82,7 @@ const SignUp = () => {
                       }}
                       onInvalid={(e: React.InvalidEvent<HTMLInputElement>) => {
                         (e.target as HTMLInputElement).setCustomValidity(
-                          "Enter Valid E-Mail ID",
+                          "Enter Valid E-Mail ID"
                         );
                       }}
                       onInput={(e: React.FormEvent<HTMLInputElement>) => {

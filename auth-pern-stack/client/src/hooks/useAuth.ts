@@ -39,7 +39,7 @@ export const useAuth = () => {
       setUser(user);
       navigate("/dashboard");
     } catch (error: any) {
-      console.log(error?.response?.data || error);
+      // console.log(error?.response?.data || error);
       toast.error(error?.response?.data?.message || "Register failed");
     } finally {
       setIsLoading(false);
@@ -57,11 +57,11 @@ export const useAuth = () => {
       // console.log(res);
       toast.success(res.data?.message || "Login successfully");
       setUser(user);
-      console.log("user saved in state");
+      // console.log("user saved in state");
 
       navigate("/dashboard");
     } catch (error: any) {
-      console.log(error?.response?.data || error);
+      // console.log(error?.response?.data || error);
       toast.error(error?.response?.data?.message || "Login failed");
     } finally {
       setIsLoading(false);
@@ -81,7 +81,7 @@ export const useAuth = () => {
         setUser(null);
       }, 0);
     } catch (error: any) {
-      console.log(error);
+      // console.log(error);
       toast.error(error?.response?.data?.message || "Logout failed");
     } finally {
       setIsLoading(false);
@@ -98,7 +98,7 @@ export const useAuth = () => {
         setUser(null);
         return;
       }
-      console.log(error?.response?.data || error);
+      // console.log(error?.response?.data || error);
       // toast.error(
       //   error?.response?.data?.message || "Failed to fetch user data",
       // );
@@ -111,11 +111,12 @@ export const useAuth = () => {
   const verifyEmail = async () => {
     try {
       const res = await apiInstance.post("/users/verify-email");
-      console.log(res);
+      toast.success(res.data?.message || "Verified successfully");
+      // console.log(res);
     } catch (error: any) {
-      console.log(error?.response?.data || error);
+      // console.log(error?.response?.data || error);
       toast.error(
-        error?.response?.data?.message || "Failed to fetch user data",
+        error?.response?.data?.message || "Failed to fetch user data"
       );
     }
   };

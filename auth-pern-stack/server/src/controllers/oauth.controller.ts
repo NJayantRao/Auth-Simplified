@@ -8,39 +8,50 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../middlewares/auth-middleware.js";
-import { baseOptions, refreshTokenOptions } from "../utils/constants.js";
+import { accessTokenOptions, refreshTokenOptions } from "../utils/constants.js";
 import { github } from "../utils/github.js";
 import crypto from "crypto";
+import { ENV } from "../lib/env.js";
 
+/**
+ * @route POST /auth/google
+ * @desc controller to oauth google login
+ * @access public
+ */
 export const googleLogin = AsyncHandler(async (req: any, res: any) => {
   const state = generateState();
   const codeVerifier = generateCodeVerifier();
   const scopes = ["openid", "profile", "email"];
   const url = google.createAuthorizationURL(state, codeVerifier, scopes);
   await redisClient.set(
-    `google-oauth-state:${state}`,
+    `oauth:google-state:${state}`,
     codeVerifier,
     "EX",
     5 * 60
   );
-  // res.cookie("google_oauth_state", state, baseOptions);
-  // res.cookie("google_oauth_codeVerifier", codeVerifier, baseOptions);
+  // res.cookie("google_oauth_state", state, accessTokenOptions);
+  // res.cookie("google_oauth_codeVerifier", codeVerifier, accessTokenOptions);
   res.redirect(url.toString());
 });
 
+/**
+ * @route POST /auth/google/callback
+ * @desc controller to oauth google login callback
+ * @access public
+ */
 export const getGoogleLoginCallback = AsyncHandler(
   async (req: any, res: any) => {
     const { code, state } = req.query;
-    console.log(code);
-    console.log(state);
+    // console.log(code);
+    // console.log(state);
 
     const storedCodeVerifier = await redisClient.get(
-      `google-oauth-state:${state}`
+      `oauth:google-state:${state}`
     );
 
     if (!code || !state || !storedCodeVerifier) {
       return res.redirect(
-        "http://localhost:5173/sign-in?error=oauth_state_mismatch"
+        `${ENV.FRONTEND_URL}/sign-in?error=oauth_state_mismatch`
       );
     }
     try {
@@ -107,7 +118,7 @@ export const getGoogleLoginCallback = AsyncHandler(
 
       if (!user)
         return res.redirect(
-          "http://localhost:5173/sign-in?error=user_creation_failed"
+          `${ENV.FRONTEND_URL}/sign-in?error=user_creation_failed`
         );
 
       // 5 Generate JWT like normal login
@@ -137,51 +148,62 @@ export const getGoogleLoginCallback = AsyncHandler(
         7 * 24 * 60 * 60
       );
 
-      res.cookie("accessToken", accessToken, baseOptions);
+      await redisClient.del(`oauth:google-state:${state}`);
+      res.cookie("accessToken", accessToken, accessTokenOptions);
       res.cookie("refreshToken", refreshToken, refreshTokenOptions);
 
       // 6 Redirect to frontend dashboard
-      return res.redirect("http://localhost:5173/dashboard");
+      return res.redirect(`${ENV.FRONTEND_URL}/dashboard`);
     } catch (error) {
       console.log("Google OAuth Error:", error);
       return res.redirect(
-        "http://localhost:5173/sign-in?error=google_oauth_failed"
+        `${ENV.FRONTEND_URL}/sign-in?error=google_oauth_failed`
       );
     }
   }
 );
 
+/**
+ * @route POST /auth/github
+ * @desc controller to oauth github login
+ * @access public
+ */
 export const githubLogin = AsyncHandler(async (req: any, res: any) => {
   const state = generateState();
   const url = github.createAuthorizationURL(state, ["user:email"]);
   await redisClient.set(
-    `oauth:github:${state}`,
+    `oauth:github-state:${state}`,
     "VALID_GITHUB_STATE",
     "EX",
     5 * 60
   );
-  // res.cookie("github_oauth_state", state, baseOptions);
+  // res.cookie("github_oauth_state", state, accessTokenOptions);
   res.redirect(url.toString());
 });
 
+/**
+ * @route POST /auth/github/callback
+ * @desc controller to oauth github login callback
+ * @access public
+ */
 export const getGithubLoginCallback = AsyncHandler(
   async (req: any, res: any) => {
     const { code, state } = req.query;
-    console.log("Github Code:", code);
-    console.log("Github State:", state);
+    // console.log("Github Code:", code);
+    // console.log("Github State:", state);
 
     // const storedState = req.cookies.github_oauth_state;
 
     if (!code || !state) {
       return res.redirect(
-        "http://localhost:5173/sign-in?error=oauth_state_mismatch"
+        `${ENV.FRONTEND_URL}/sign-in?error=oauth_state_mismatch`
       );
     }
-    const stored = await redisClient.get(`oauth:github:${state}`);
+    const stored = await redisClient.get(`oauth:github-state:${state}`);
 
     if (!stored) {
       return res.redirect(
-        "http://localhost:5173/sign-in?error=invalid_or_expired_state"
+        `${ENV.FRONTEND_URL}/sign-in?error=invalid_or_expired_state`
       );
     }
     try {
@@ -259,7 +281,7 @@ export const getGithubLoginCallback = AsyncHandler(
 
       if (!user) {
         return res.redirect(
-          "http://localhost:5173/sign-in?error=user_creation_failed"
+          `${ENV.FRONTEND_URL}/sign-in?error=user_creation_failed`
         );
       }
 
@@ -286,15 +308,15 @@ export const getGithubLoginCallback = AsyncHandler(
         "EX",
         7 * 24 * 60 * 60
       );
-
-      res.cookie("accessToken", loginAccessToken, baseOptions);
+      await redisClient.del(`oauth:github-state:${state}`);
+      res.cookie("accessToken", loginAccessToken, accessTokenOptions);
       res.cookie("refreshToken", refreshToken, refreshTokenOptions);
 
-      return res.redirect("http://localhost:5173/dashboard");
+      return res.redirect(`${ENV.FRONTEND_URL}/dashboard`);
     } catch (error) {
       console.log("GitHub OAuth Error:", error);
       return res.redirect(
-        "http://localhost:5173/sign-in?error=github_oauth_failed"
+        `${ENV.FRONTEND_URL}/sign-in?error=github_oauth_failed`
       );
     }
   }

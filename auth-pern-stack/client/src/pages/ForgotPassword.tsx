@@ -1,11 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import React, { useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
@@ -68,8 +64,14 @@ const ForgotPassword = () => {
                   </Field>
 
                   <Field>
-                    <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
-                      {isLoading ? <Spinner size="sm" variant="button" className="mr-2" /> : null}
+                    <Button
+                      type="submit"
+                      className="w-full cursor-pointer"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <Spinner size="sm" variant="button" className="mr-2" />
+                      ) : null}
                       Send OTP
                     </Button>
                   </Field>

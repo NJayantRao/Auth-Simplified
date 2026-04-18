@@ -1,11 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import React, { useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
@@ -25,7 +21,11 @@ const ResetPassword = () => {
     e.preventDefault();
     try {
       setIsLoading(true);
-      const res = await apiInstance.post("/auth/reset-password", { email, otp, newPassword });
+      const res = await apiInstance.post("/auth/reset-password", {
+        email,
+        otp,
+        newPassword,
+      });
       toast.success(res.data?.message || "Password reset successfully");
       navigate("/sign-in");
     } catch (error: any) {
@@ -102,8 +102,14 @@ const ResetPassword = () => {
                   </Field>
 
                   <Field>
-                    <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
-                      {isLoading ? <Spinner size="sm" variant="button" className="mr-2" /> : null}
+                    <Button
+                      type="submit"
+                      className="w-full cursor-pointer"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <Spinner size="sm" variant="button" className="mr-2" />
+                      ) : null}
                       Reset Password
                     </Button>
                   </Field>
@@ -118,4 +124,3 @@ const ResetPassword = () => {
 };
 
 export default ResetPassword;
-

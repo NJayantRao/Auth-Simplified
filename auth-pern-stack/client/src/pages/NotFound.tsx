@@ -5,7 +5,6 @@ export default function NotFound() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-
       {/* ── Navbar (mirrors Home page) ── */}
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/95 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
@@ -13,7 +12,10 @@ export default function NotFound() {
             AuthSystem
           </Link>
           <div className="flex items-center gap-3">
-            <Link to="/sign-in" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              to="/sign-in"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
               Sign in
             </Link>
             <Link
@@ -29,7 +31,6 @@ export default function NotFound() {
       {/* ── 404 Content ── */}
       <main className="flex-1 flex items-center justify-center px-6">
         <div className="max-w-lg w-full text-center space-y-8">
-
           {/* Status Badge */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground">
             <span className="size-1.5 rounded-full bg-destructive animate-pulse" />
@@ -87,18 +88,27 @@ export default function NotFound() {
               <span className="size-2.5 rounded-full bg-red-400/70" />
               <span className="size-2.5 rounded-full bg-yellow-400/70" />
               <span className="size-2.5 rounded-full bg-green-400/70" />
-              <span className="ml-2 text-xs text-muted-foreground font-mono">error.log</span>
+              <span className="ml-2 text-xs text-muted-foreground font-mono">
+                error.log
+              </span>
             </div>
             <pre className="px-5 py-4 text-xs font-mono leading-relaxed overflow-x-auto">
               <code>
-                <span className="text-muted-foreground">Status   </span>
+                <span className="text-muted-foreground">Status </span>
                 <span className="text-foreground">404 Not Found{"\n"}</span>
-                <span className="text-muted-foreground">Path     </span>
-                <span className="text-foreground">{location.pathname}{"\n"}</span>
-                <span className="text-muted-foreground">Message  </span>
-                <span className="text-foreground">The requested resource could not be located{"\n"}</span>
-                <span className="text-muted-foreground">Hint     </span>
-                <span className="text-foreground">Check the URL or navigate back to safety</span>
+                <span className="text-muted-foreground">Path </span>
+                <span className="text-foreground">
+                  {location.pathname}
+                  {"\n"}
+                </span>
+                <span className="text-muted-foreground">Message </span>
+                <span className="text-foreground">
+                  The requested resource could not be located{"\n"}
+                </span>
+                <span className="text-muted-foreground">Hint </span>
+                <span className="text-foreground">
+                  Check the URL or navigate back to safety
+                </span>
               </code>
             </pre>
           </div>
@@ -135,10 +145,18 @@ export default function NotFound() {
       {/* ── Footer (mirrors Home page) ── */}
       <footer className="border-t border-border/60">
         <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} AuthSystem. Built for developers.</p>
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} AuthSystem. Built for developers.
+          </p>
           <div className="flex items-center gap-5">
             {["Privacy Policy", "Terms", "GitHub"].map((link) => (
-              <a key={link} href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">{link}</a>
+              <a
+                key={link}
+                href="#"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {link}
+              </a>
             ))}
           </div>
         </div>

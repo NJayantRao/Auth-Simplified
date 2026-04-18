@@ -10,7 +10,7 @@ import type { IPayload } from "../types/jwt.types.js";
 import ApiError from "../utils/api-error.js";
 import ApiResponse from "../utils/api-response.js";
 import AsyncHandler from "../utils/async-handler.js";
-import { baseOptions, refreshTokenOptions } from "../utils/constants.js";
+import { accessTokenOptions, refreshTokenOptions } from "../utils/constants.js";
 import { sendOtpMail, sendRegistrationMail } from "../utils/send-mails.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
@@ -105,7 +105,7 @@ const registerUser = AsyncHandler(async (req: any, res: any) => {
   const verifyLink = `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email?id=${user.id}&verifyToken=${verificationToken}`;
   // console.log(verifyLink);
 
-  res.cookie("accessToken", accessToken, baseOptions);
+  res.cookie("accessToken", accessToken, accessTokenOptions);
   res.cookie("refreshToken", refreshToken, refreshTokenOptions);
   sendRegistrationMail(name, email, verifyLink);
   return res.status(201).json(
@@ -192,7 +192,7 @@ const loginUser = AsyncHandler(async (req: any, res: any) => {
     7 * 24 * 60 * 60
   );
   //set cookies
-  res.cookie("accessToken", accessToken, baseOptions);
+  res.cookie("accessToken", accessToken, accessTokenOptions);
   res.cookie("refreshToken", refreshToken, refreshTokenOptions);
 
   return res.status(200).json(
@@ -229,7 +229,7 @@ const logoutUser = AsyncHandler(async (req: any, res: any) => {
   await redisClient.del(`active-session:${id}`);
 
   //clear tokens from cookies
-  res.clearCookie("accessToken", baseOptions);
+  res.clearCookie("accessToken", accessTokenOptions);
   res.clearCookie("refreshToken", refreshTokenOptions);
 
   return res.status(200).json(new ApiResponse(200, "Logged out successfully"));
@@ -392,8 +392,8 @@ const refreshAccessToken = async (req: any, res: any) => {
       }
     );
 
-    res.cookie("accessToken", accessToken, baseOptions);
-    console.log("refresh token called");
+    res.cookie("accessToken", accessToken, accessTokenOptions);
+    // console.log("refresh token called");
 
     return res.status(200).json(
       new ApiResponse(200, "Access token refreshed successfully", {
