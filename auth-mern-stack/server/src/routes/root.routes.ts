@@ -1,12 +1,12 @@
-import express from "express";
-import {
-  healthCheckController,
-  rootController,
-} from "../controllers/root.controller.js";
+// import express from "express";
+// import {
+//   healthCheckController,
+//   rootController,
+// } from "../controllers/root.controller.js";
 
-const router = express.Router();
+// const router = express.Router();
 
-router.get("/", rootController);
-router.get("/health-check", healthCheckController);
+// router.get("/", rootController);
+// router.get("/health-check", healthCheckController);
 
-export { router as rootRouter };
+// export { router as rootRouter };
