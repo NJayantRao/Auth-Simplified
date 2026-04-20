@@ -1,6 +1,6 @@
-import { comparePassword, hashPassword } from "../lib/bcrypt.js";
+import mongoose from "mongoose";
+import { comparePassword } from "../lib/bcrypt.js";
 import { ENV } from "../lib/env.js";
-import { prisma } from "../lib/prisma.js";
 import { redisClient } from "../lib/redis.js";
 import {
   generateAccessToken,
@@ -14,6 +14,8 @@ import { accessTokenOptions, refreshTokenOptions } from "../utils/constants.js";
 import { sendOtpMail, sendRegistrationMail } from "../utils/send-mails.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import { OAuthProvider } from "../models/oAuth.model.js";
+import { User } from "../models/user.model.js";
 
 /**
  * @route POST /api/v1/auth/register
@@ -21,128 +23,107 @@ import jwt from "jsonwebtoken";
  * @access public
  */
 const registerUser = AsyncHandler(async (req: any, res: any) => {
-  // get data from request body
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
     return res.status(400).json(new ApiError(400, "All fields are required"));
   }
 
-  // check if user already exists
-  const existingUser = await prisma.user.findUnique({ where: { email } });
+  const existingUser = await User.findOne({ email });
   if (existingUser) {
     return res.status(400).json(new ApiError(400, "User already exists"));
   }
 
-  //hash password
-  const hashedPassword = await hashPassword(password);
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  // create user and local oauth provider in one transaction
-  const user = await prisma.$transaction(async (tx) => {
-    const createdUser = await tx.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-      },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        isVerified: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+  try {
+    const createdUser = await new User({
+      name,
+      email,
+      password,
+    }).save({ session });
 
-    await tx.oAuthProvider.create({
-      data: {
-        userId: createdUser.id,
-        providerName: "LOCAL",
-        providerUserId: createdUser.id,
-      },
-    });
+    await new OAuthProvider({
+      userId: createdUser._id,
+      providerName: "LOCAL",
+      providerUserId: createdUser.id,
+    }).save({ session });
 
-    return createdUser;
-  });
+    await session.commitTransaction();
+    session.endSession();
 
-  //jwt payload
-  const sessionId = crypto.randomBytes(16).toString("hex");
-  const payload: IPayload = {
-    id: user.id,
-    email: user.email,
-    role: user.role,
-    sessionId,
-  };
+    const sessionId = crypto.randomBytes(16).toString("hex");
+    const payload: IPayload = {
+      id: createdUser.id,
+      email: createdUser.email,
+      role: createdUser.role,
+      sessionId,
+    };
 
-  const accessToken = generateAccessToken(payload);
-  const refreshToken = generateRefreshToken(payload);
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
 
-  //store refresh token in redis
-  await redisClient.set(
-    `refresh-token:${user.id}`,
-    refreshToken,
-    "EX",
-    7 * 24 * 60 * 60
-  );
-
-  //store active session ID
-  await redisClient.set(
-    `active-session:${user.id}`,
-    sessionId,
-    "EX",
-    7 * 24 * 60 * 60
-  );
-
-  //generate verification link
-  const verificationToken = crypto.randomBytes(32).toString("hex");
-  await redisClient.set(
-    `verify-token:${user.id}`,
-    verificationToken,
-    "EX",
-    10 * 60
-  );
-  const verifyLink = `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email?id=${user.id}&verifyToken=${verificationToken}`;
-  // console.log(verifyLink);
-
-  res.cookie("accessToken", accessToken, accessTokenOptions);
-  res.cookie("refreshToken", refreshToken, refreshTokenOptions);
-  sendRegistrationMail(name, email, verifyLink);
-  return res.status(201).json(
-    new ApiResponse(201, "User registered successfully", {
-      accessToken,
+    await redisClient.set(
+      `refresh-token:${createdUser.id}`,
       refreshToken,
-      user,
-    })
-  );
-});
+      "EX",
+      7 * 24 * 60 * 60
+    );
 
+    await redisClient.set(
+      `active-session:${createdUser.id}`,
+      sessionId,
+      "EX",
+      7 * 24 * 60 * 60
+    );
+
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    await redisClient.set(
+      `verify-token:${createdUser.id}`,
+      verificationToken,
+      "EX",
+      10 * 60
+    );
+    const verifyLink = `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email?id=${createdUser.id}&verifyToken=${verificationToken}`;
+
+    res.cookie("accessToken", accessToken, accessTokenOptions);
+    res.cookie("refreshToken", refreshToken, refreshTokenOptions);
+    sendRegistrationMail(name, email, verifyLink);
+
+    return res.status(201).json(
+      new ApiResponse(201, "User registered successfully", {
+        accessToken,
+        refreshToken,
+        user: {
+          id: createdUser.id,
+          email: createdUser.email,
+          role: createdUser.role,
+          isVerified: createdUser.isVerified,
+          createdAt: createdUser.createdAt,
+          updatedAt: createdUser.updatedAt,
+        },
+      })
+    );
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+});
 /**
  * @route POST /api/v1/auth/login
  * @description controller to login a user
  * @access public
  */
 const loginUser = AsyncHandler(async (req: any, res: any) => {
-  // get data from request body
   const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json(new ApiError(400, "All fields are required"));
   }
 
-  //check user exists or not
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: {
-      id: true,
-      email: true,
-      password: true,
-      role: true,
-      isVerified: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  const user = await User.findOne({ email }).select("+password");
   if (!user) {
     return res.status(401).json(new ApiError(401, "Invalid Credentials"));
   }
@@ -151,13 +132,12 @@ const loginUser = AsyncHandler(async (req: any, res: any) => {
       .status(400)
       .json(new ApiError(400, "Please login with your OAuth provider"));
   }
-  //compare password
+
   const isMatched = await comparePassword(password, user.password);
   if (!isMatched) {
     return res.status(401).json(new ApiError(401, "Invalid Credentials"));
   }
 
-  //generate access & refresh tokens
   const sessionId = crypto.randomBytes(16).toString("hex");
   const payload: IPayload = {
     id: user.id,
@@ -177,21 +157,18 @@ const loginUser = AsyncHandler(async (req: any, res: any) => {
     updatedAt: user.updatedAt,
   };
 
-  //set refresh token in redis
   await redisClient.set(
     `refresh-token:${user.id}`,
     refreshToken,
     "EX",
     7 * 24 * 60 * 60
   );
-  //set active session ID
   await redisClient.set(
     `active-session:${user.id}`,
     sessionId,
     "EX",
     7 * 24 * 60 * 60
   );
-  //set cookies
   res.cookie("accessToken", accessToken, accessTokenOptions);
   res.cookie("refreshToken", refreshToken, refreshTokenOptions);
 
@@ -249,10 +226,15 @@ const verifyEmail = AsyncHandler(async (req: any, res: any) => {
     return res.status(400).json(new ApiError(400, "Email verification failed"));
   }
 
-  const user = await prisma.user.update({
-    where: { id },
-    data: { isVerified: true },
-  });
+  const user = await User.findByIdAndUpdate(
+    id,
+    { isVerified: true },
+    { new: true }
+  );
+
+  if (!user) {
+    return res.status(404).json(new ApiError(404, "User not found"));
+  }
 
   await redisClient.del(`verify-token:${user.id}`);
 
@@ -270,12 +252,8 @@ const forgotPassword = AsyncHandler(async (req: any, res: any) => {
   if (!email) {
     return res.status(400).json(new ApiError(400, "All fields are required"));
   }
-  //if not existing user
-  const isExistingUser = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  });
+
+  const isExistingUser = await User.findOne({ email });
 
   if (!isExistingUser) {
     return res
@@ -285,7 +263,6 @@ const forgotPassword = AsyncHandler(async (req: any, res: any) => {
       );
   }
 
-  //generate otp & store in redis
   const otp = crypto.randomInt(100000, 1000000);
 
   await redisClient.set(`verify-otp:${email}`, otp.toString(), "EX", 10 * 60);
@@ -309,27 +286,17 @@ const resetPassword = AsyncHandler(async (req: any, res: any) => {
   if (!email || !otp || !newPassword) {
     return res.status(400).json(new ApiError(400, "All fields are required"));
   }
-  //if not existing user
-  const isExistingUser = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  });
 
+  const user = await User.findOne({ email }).select("+password");
   const storedOtp = await redisClient.get(`verify-otp:${email}`);
 
-  if (!isExistingUser || !storedOtp || otp !== storedOtp) {
+  if (!user || !storedOtp || otp !== storedOtp) {
     await redisClient.del(`verify-otp:${email}`);
     return res.status(400).json(new ApiError(400, "Invalid email or OTP"));
   }
 
-  //hash new password
-  const hashedPassword = await hashPassword(newPassword);
-
-  await prisma.user.update({
-    where: { email },
-    data: { password: hashedPassword },
-  });
+  user.password = newPassword;
+  await user.save();
 
   await redisClient.del(`verify-otp:${email}`);
 

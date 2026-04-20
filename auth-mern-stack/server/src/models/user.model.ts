@@ -16,12 +16,18 @@ const userSchema = new mongoose.Schema<IUserSchema>(
     password: {
       type: String,
       required: false,
+      select: false,
     },
     role: {
       type: String,
       required: true,
       enum: ["USER", "ADMIN"],
       default: "USER",
+    },
+    isVerified: {
+      type: Boolean,
+      required: true,
+      default: false,
     },
   },
   { timestamps: true }
@@ -42,11 +48,7 @@ userSchema.pre("save", async function () {
   }
 });
 
-userSchema.methods.comparePassword = async function ({
-  userPassword,
-}: {
-  userPassword: string;
-}) {
+userSchema.methods.comparePassword = async function (userPassword: string) {
   try {
     const isMatch = bcrypt.compare(userPassword, this.password);
     return isMatch;

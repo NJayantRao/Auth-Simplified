@@ -6,6 +6,7 @@ interface IUserSchema {
   email: string;
   password: string;
   role: "USER" | "ADMIN";
+  isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

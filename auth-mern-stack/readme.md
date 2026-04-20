@@ -39,7 +39,7 @@ No git history. Just the code.
 - **Email Verification** — Time-limited token link on registration + resend-on-demand
 
 ### Access Control
-- **Role-Based Access** — `User` and `Admin` roles via Prisma enum
+- **Role-Based Access** — `User` and `Admin` roles 
 - **RBAC Middleware** — `authorizeAdmin` middleware for admin-only routes
 
 ### Infrastructure

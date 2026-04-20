@@ -2,7 +2,8 @@ import { decodeIdToken, generateCodeVerifier, generateState } from "arctic";
 import AsyncHandler from "../utils/async-handler.js";
 import { google } from "../utils/google.js";
 import { redisClient } from "../lib/redis.js";
-import { prisma } from "../lib/prisma.js";
+import { User } from "../models/user.model.js";
+import { OAuthProvider } from "../models/oAuth.model.js";
 import type { IPayload } from "../types/jwt.types.js";
 import {
   generateAccessToken,
@@ -12,6 +13,7 @@ import { accessTokenOptions, refreshTokenOptions } from "../utils/constants.js";
 import { github } from "../utils/github.js";
 import crypto from "crypto";
 import { ENV } from "../lib/env.js";
+import mongoose from "mongoose";
 
 /**
  * @route POST /auth/google
@@ -69,51 +71,45 @@ export const getGoogleLoginCallback = AsyncHandler(
 
       // 1 Check if OAuth account exists
 
-      let oauthAccount = await prisma.oAuthProvider.findUnique({
-        where: {
-          providerName_providerUserId: {
-            providerName: "GOOGLE",
-            providerUserId: googleUserId,
-          },
-        },
+      let oauthAccount = await OAuthProvider.findOne({
+        providerName: "GOOGLE",
+        providerUserId: googleUserId,
       });
 
       let user;
 
       if (oauthAccount) {
-        // existing user login
-        user = await prisma.user.findUnique({
-          where: { id: oauthAccount.userId },
-        });
+        user = await User.findById(oauthAccount.userId);
       } else {
-        user = await prisma.$transaction(async (tx) => {
-          // 2 Check if email already exists
-          let existingUser = await tx.user.findUnique({
-            where: { email },
-          });
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+          let existingUser = await User.findOne({ email }).session(session);
 
           if (!existingUser) {
-            // 3 Create new user
-            existingUser = await tx.user.create({
-              data: {
-                name,
-                email,
-                isVerified: true,
-              },
-            });
+            existingUser = await new User({
+              name,
+              email,
+              isVerified: true,
+            }).save({ session });
           }
 
-          // 4 Create OAuth mapping
-          await tx.oAuthProvider.create({
-            data: {
-              userId: existingUser.id,
-              providerName: "GOOGLE",
-              providerUserId: googleUserId,
-            },
-          });
+          await new OAuthProvider({
+            userId: existingUser._id,
+            providerName: "GOOGLE",
+            providerUserId: googleUserId,
+          }).save({ session });
 
-          return existingUser;
-        });
+          await session.commitTransaction();
+          session.endSession();
+
+          user = existingUser;
+        } catch (error) {
+          await session.abortTransaction();
+          session.endSession();
+          throw error;
+        }
       }
 
       if (!user)
@@ -236,47 +232,45 @@ export const getGithubLoginCallback = AsyncHandler(
         email = primaryEmail.email;
       }
 
-      let oauthAccount = await prisma.oAuthProvider.findUnique({
-        where: {
-          providerName_providerUserId: {
-            providerName: "GITHUB",
-            providerUserId: githubUserId,
-          },
-        },
+      let oauthAccount = await OAuthProvider.findOne({
+        providerName: "GITHUB",
+        providerUserId: githubUserId,
       });
 
       let user;
 
       if (oauthAccount) {
-        user = await prisma.user.findUnique({
-          where: { id: oauthAccount.userId },
-        });
+        user = await User.findById(oauthAccount.userId);
       } else {
-        user = await prisma.$transaction(async (tx) => {
-          let existingUser = await tx.user.findUnique({
-            where: { email },
-          });
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+          let existingUser = await User.findOne({ email }).session(session);
 
           if (!existingUser) {
-            existingUser = await tx.user.create({
-              data: {
-                name,
-                email,
-                isVerified: true,
-              },
-            });
+            existingUser = await new User({
+              name,
+              email,
+              isVerified: true,
+            }).save({ session });
           }
 
-          await tx.oAuthProvider.create({
-            data: {
-              userId: existingUser.id,
-              providerName: "GITHUB",
-              providerUserId: githubUserId,
-            },
-          });
+          await new OAuthProvider({
+            userId: existingUser._id,
+            providerName: "GITHUB",
+            providerUserId: githubUserId,
+          }).save({ session });
 
-          return existingUser;
-        });
+          await session.commitTransaction();
+          session.endSession();
+
+          user = existingUser;
+        } catch (error) {
+          await session.abortTransaction();
+          session.endSession();
+          throw error;
+        }
       }
 
       if (!user) {

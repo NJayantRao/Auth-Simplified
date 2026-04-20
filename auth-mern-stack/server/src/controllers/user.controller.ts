@@ -1,11 +1,11 @@
-import { prisma } from "../lib/prisma.js";
 import { redisClient } from "../lib/redis.js";
 import AsyncHandler from "../utils/async-handler.js";
 import crypto from "crypto";
 import { sendVerificationMail } from "../utils/send-mails.js";
 import ApiResponse from "../utils/api-response.js";
-import { comparePassword, hashPassword } from "../lib/bcrypt.js";
+import { comparePassword } from "../lib/bcrypt.js";
 import ApiError from "../utils/api-error.js";
+import { User } from "../models/user.model.js";
 
 /**
  * @route POST /api/v1/users/verify-email
@@ -14,19 +14,22 @@ import ApiError from "../utils/api-error.js";
  */
 const verifyUserEmail = AsyncHandler(async (req: any, res: any) => {
   const { id } = req.user;
-  const user = await prisma.user.findUnique({ where: { id } });
-  //generate verification link
+  const user = await User.findById(id);
+
+  if (!user) {
+    return res.status(404).json(new ApiError(404, "User not found"));
+  }
+
   const verificationToken = crypto.randomBytes(32).toString("hex");
   await redisClient.set(
-    `verify-token:${user?.id}`,
+    `verify-token:${user.id}`,
     verificationToken,
     "EX",
     10 * 60
   );
-  const verifyLink = `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email?id=${user?.id!}&verifyToken=${verificationToken}`;
-  // console.log(verifyLink);
+  const verifyLink = `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email?id=${user.id}&verifyToken=${verificationToken}`;
 
-  sendVerificationMail(user?.name!, user?.email!, verifyLink);
+  sendVerificationMail(user.name, user.email, verifyLink);
 
   return res.status(200).json(new ApiResponse(200, "Verification email sent"));
 });
@@ -52,32 +55,33 @@ const getUserProfile = AsyncHandler(async (req: any, res: any) => {
       );
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      email: true,
-      role: true,
-      isVerified: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  const user = await User.findById(id)
+    .select("email role isVerified createdAt updatedAt")
+    .lean();
 
   if (!user) {
     return res.status(401).json(new ApiResponse(401, "Invalid Credentials"));
   }
 
+  const sanitizedUser = {
+    id: user._id.toString(),
+    email: user.email,
+    role: user.role,
+    isVerified: user.isVerified,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+
   await redisClient.set(
-    `cached-user:${user.id}`,
-    JSON.stringify(user),
+    `cached-user:${sanitizedUser.id}`,
+    JSON.stringify(sanitizedUser),
     "EX",
     60
   );
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "User fetched successfully", user));
+    .json(new ApiResponse(200, "User fetched successfully", sanitizedUser));
 });
 
 /**
@@ -101,14 +105,7 @@ const changePassword = AsyncHandler(async (req: any, res: any) => {
       );
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      email: true,
-      password: true,
-    },
-  });
+  const user = await User.findById(id).select("+password");
 
   if (!user) {
     return res.status(401).json(new ApiError(401, "Invalid Credentials"));
@@ -130,13 +127,8 @@ const changePassword = AsyncHandler(async (req: any, res: any) => {
     return res.status(400).json(new ApiError(400, "Password is incorrect"));
   }
 
-  //hash password
-  const hashedPassword = await hashPassword(newPassword);
-
-  await prisma.user.update({
-    where: { id },
-    data: { password: hashedPassword },
-  });
+  user.password = newPassword;
+  await user.save();
 
   return res
     .status(200)
