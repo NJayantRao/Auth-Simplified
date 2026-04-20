@@ -1,15 +1,15 @@
 # 🔐 Auth-Simplified
 
-A production-ready fullstack authentication boilerplate — **React + Express + PostgreSQL + Redis**. Clone it, fill in your `.env`, and start shipping features instead of auth.
+A production-ready fullstack authentication boilerplate — **MERN Stack (MongoDB + Express + React + Node.js) + Redis**. Clone it, fill in your `.env`, and start shipping features instead of auth.
 
-> **Repo:** [github.com/NJayantRao/Auth-Simplified](https://github.com/NJayantRao/Auth-Simplified)
+> **Repo:** https://github.com/NJayantRao/Auth-Simplified
 
 ---
 
 ## ⚡ Quick Start
 
 ```bash
-npx degit NJayantRao/Auth-Simplified/auth-pern-stack my-app
+npx degit NJayantRao/Auth-Simplified/auth-mern-stack my-app
 cd my-app
 ```
 
@@ -20,41 +20,47 @@ No git history. Just the code.
 ## ✨ Features
 
 ### Authentication
-- **JWT Access + Refresh Tokens** — 15m access / 7d refresh with silent rotation
-- **httpOnly Cookie Security** — Tokens in secure httpOnly cookies, never localStorage
-- **Single-Device Sessions** — Session ID in JWT validated against Redis on every request. New login kills all previous sessions automatically
-- **Token Blacklisting** — Refresh tokens blacklisted in Redis on logout
-- **Axios Interceptor** — Auto-refreshes expired access tokens and replays the original request transparently
+
+* **JWT Access + Refresh Tokens** — 15m access / 7d refresh with silent rotation
+* **httpOnly Cookie Security** — Tokens in secure httpOnly cookies, never localStorage
+* **Single-Device Sessions** — Session ID in JWT validated against Redis on every request. New login kills all previous sessions automatically
+* **Token Blacklisting** — Refresh tokens blacklisted in Redis on logout
+* **Axios Interceptor** — Auto-refreshes expired access tokens and replays the original request transparently
 
 ### OAuth
-- **Google OAuth** — PKCE flow via Arctic library
-- **GitHub OAuth** — With private email fallback (`/user/emails`)
-- **OAuthProvider Table** — Separate table supports linking multiple providers to one account
-- **State in Redis** — OAuth state stored in Redis (5 min TTL), not cookies
+
+* **Google OAuth** — PKCE flow via Arctic library
+* **GitHub OAuth** — With private email fallback (`/user/emails`)
+* **OAuthProvider Collection** — Supports linking multiple providers to one account
+* **State in Redis** — OAuth state stored in Redis (5 min TTL), not cookies
 
 ### Password Flows
-- **Forgot Password** — 6-digit OTP sent via email, stored in Redis (10 min TTL)
-- **Reset Password** — Verify OTP + set new password
-- **Change Password** — Authenticated route, validates old password, blocks OAuth-only accounts
-- **Email Verification** — Time-limited token link on registration + resend-on-demand
+
+* **Forgot Password** — 6-digit OTP sent via email, stored in Redis (10 min TTL)
+* **Reset Password** — Verify OTP + set new password
+* **Change Password** — Authenticated route, validates old password, blocks OAuth-only accounts
+* **Email Verification** — Time-limited token link on registration + resend-on-demand
 
 ### Access Control
-- **Role-Based Access** — `User` and `Admin` roles 
-- **RBAC Middleware** — `authorizeAdmin` middleware for admin-only routes
+
+* **Role-Based Access** — `User` and `Admin` roles
+* **RBAC Middleware** — `authorizeAdmin` middleware for admin-only routes
 
 ### Infrastructure
-- **Zod Env Validation** — Startup crash with clear error messages if any required env var is missing
-- **Redis Rate Limiter** — 10 req/min per IP, Redis-backed
-- **Profile Caching** — User profile cached in Redis (1 min TTL)
-- **Prisma Transactions** — User + OAuthProvider created atomically
-- **Swagger API Docs** — Auto-generated at `/api-docs`
-- **Docker Compose** — PostgreSQL 16 + Redis Stack with one command
+
+* **Zod Env Validation** — Startup crash with clear error messages if any required env var is missing
+* **Redis Rate Limiter** — 10 req/min per IP, Redis-backed
+* **Profile Caching** — User profile cached in Redis (1 min TTL)
+* **Mongoose Transactions** — User + OAuthProvider created atomically
+* **Swagger API Docs** — Auto-generated at `/api-docs`
+* **Docker Compose** — MongoDB + Redis Stack with one command
 
 ### Frontend
-- **React Auth Context** — Global auth state with `isInitialized` flag
-- **Protected Routes** — No flash-to-sign-in on page refresh or post-OAuth redirect
-- **Dark / Light Theme** — Animated theme toggler, persisted
-- **Full Auth Pages** — Sign In, Sign Up, Dashboard, Forgot Password, Reset Password, Not Found
+
+* **React Auth Context** — Global auth state with `isInitialized` flag
+* **Protected Routes** — No flash-to-sign-in on page refresh or post-OAuth redirect
+* **Dark / Light Theme** — Animated theme toggler, persisted
+* **Full Auth Pages** — Sign In, Sign Up, Dashboard, Forgot Password, Reset Password, Not Found
 
 ---
 
@@ -62,43 +68,43 @@ No git history. Just the code.
 
 ### Backend
 
-| Layer         | Technology                            |
-|---------------|---------------------------------------|
-| Runtime       | Node.js + TypeScript (`tsx`)          |
-| Framework     | Express 5                             |
-| ORM           | Prisma 7 (PostgreSQL)                 |
-| Session Store | Redis (ioredis)                       |
-| Auth          | JWT (`jsonwebtoken`) + bcrypt         |
-| OAuth         | Arctic (Google PKCE + GitHub)         |
-| Email         | Nodemailer + Gmail OAuth2 + Mailgen   |
-| Validation    | Zod (requests + environment)          |
-| API Docs      | Swagger UI Express                    |
+| Layer         | Technology                          |
+| ------------- | ----------------------------------- |
+| Runtime       | Node.js + TypeScript (`tsx`)        |
+| Framework     | Express 5                           |
+| ODM           | Mongoose (MongoDB)                  |
+| Session Store | Redis (ioredis)                     |
+| Auth          | JWT (`jsonwebtoken`) + bcrypt       |
+| OAuth         | Arctic (Google PKCE + GitHub)       |
+| Email         | Nodemailer + Gmail OAuth2 + Mailgen |
+| Validation    | Zod (requests + environment)        |
+| API Docs      | Swagger UI Express                  |
 
 ### Frontend
 
-| Layer         | Technology                  |
-|---------------|-----------------------------|
-| Framework     | React 19 + TypeScript       |
-| Build Tool    | Vite                        |
-| Routing       | React Router 7              |
-| Styling       | Tailwind CSS 4 + shadcn/ui  |
-| HTTP Client   | Axios + interceptor         |
-| Notifications | React Hot Toast             |
+| Layer         | Technology                 |
+| ------------- | -------------------------- |
+| Framework     | React 19 + TypeScript      |
+| Build Tool    | Vite                       |
+| Routing       | React Router 7             |
+| Styling       | Tailwind CSS 4 + shadcn/ui |
+| HTTP Client   | Axios + interceptor        |
+| Notifications | React Hot Toast            |
 
 ### Infrastructure
 
-| Service          | Tool            |
-|------------------|-----------------|
-| Database         | PostgreSQL 16   |
-| Cache / Sessions | Redis Stack     |
-| Orchestration    | Docker Compose  |
+| Service          | Tool           |
+| ---------------- | -------------- |
+| Database         | MongoDB        |
+| Cache / Sessions | Redis Stack    |
+| Orchestration    | Docker Compose |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-auth-pern-stack/
+auth-mern-stack/
 ├── CHANGES.md
 ├── docker-compose.yml
 ├── readme.md
@@ -130,64 +136,62 @@ auth-pern-stack/
         ├── app.ts                  # Express app, middleware, routes
         ├── server.ts               # Entry point
         ├── controllers/
-        │   ├── auth.controller.ts  # register, login, logout, verify, forgot, reset, refresh
-        │   ├── oauth.controller.ts # Google + GitHub OAuth callbacks
-        │   └── user.controller.ts  # profile, verify-email, change-password
+        │   ├── auth.controller.ts
+        │   ├── oauth.controller.ts
+        │   └── user.controller.ts
         ├── middlewares/
-        │   ├── auth-middleware.ts  # JWT verify + session check + token generators
+        │   ├── auth-middleware.ts
         │   ├── rate-limit-middleware.ts
         │   └── zod-validation.ts
         ├── lib/
-        │   ├── env.ts              # Zod-validated ENV object
-        │   ├── prisma.ts
+        │   ├── env.ts
+        │   ├── mongoose.ts
         │   ├── redis.ts
         │   └── nodemailer.ts
+        ├── models/
+        │   ├── user.model.ts
+        │   └── oauth-provider.model.ts
         ├── utils/
-        │   ├── google.ts           # Arctic Google instance
-        │   ├── github.ts           # Arctic GitHub instance
-        │   ├── constants.ts        # Cookie options
+        │   ├── google.ts
+        │   ├── github.ts
+        │   ├── constants.ts
         │   ├── api-error.ts
         │   ├── api-response.ts
         │   └── async-handler.ts
         ├── validators/
-        │   ├── auth-schema.ts      # Zod request schemas
-        │   └── env-schema.ts       # Zod env schema
-        ├── emails/                 # Mailgen templates
-        └── prisma/
-            └── schema.prisma
+        │   ├── auth-schema.ts
+        │   └── env-schema.ts
+        └── emails/
 ```
 
 ---
 
-## 🗄 Database Schema
+## 🗄 Database Schema (Mongoose)
 
-```prisma
-model User {
-  id         String          @id @default(uuid())
-  name       String
-  email      String          @unique
-  password   String?         // null for OAuth-only users
-  role       Role            @default(User)
-  isVerified Boolean         @default(false)
-  providers  OAuthProvider[]
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-}
+```ts
+// user.model.ts
+import mongoose from "mongoose";
 
-model OAuthProvider {
-  id             String    @id @default(uuid())
-  providerName   providers
-  providerUserId String
-  userId         String
-  user           User      @relation(fields: [userId], references: [id])
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String,
+  role: { type: String, enum: ["User", "Admin"], default: "User" },
+  isVerified: { type: Boolean, default: false },
+}, { timestamps: true });
 
-  @@unique([providerName, providerUserId])
-}
+export const User = mongoose.model("User", userSchema);
+```
 
-enum Role     { User Admin }
-enum providers { LOCAL GOOGLE GITHUB }
+```ts
+// oauth-provider.model.ts
+const oauthProviderSchema = new mongoose.Schema({
+  providerName: { type: String, enum: ["LOCAL", "GOOGLE", "GITHUB"] },
+  providerUserId: String,
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+}, { timestamps: true });
+
+export const OAuthProvider = mongoose.model("OAuthProvider", oauthProviderSchema);
 ```
 
 ---
@@ -197,7 +201,7 @@ enum providers { LOCAL GOOGLE GITHUB }
 ### 1. Clone
 
 ```bash
-npx degit NJayantRao/Auth-Simplified/auth-pern-stack my-app
+npx degit NJayantRao/Auth-Simplified/auth-mern-stack my-app
 cd my-app
 ```
 
@@ -207,7 +211,7 @@ cd my-app
 docker compose up -d
 ```
 
-Starts PostgreSQL 16 on port `5431` and Redis Stack on port `6379` (RedisInsight UI on `8001`).
+Starts MongoDB on port `27017` and Redis Stack on port `6379`.
 
 ### 3. Server setup
 
@@ -215,12 +219,10 @@ Starts PostgreSQL 16 on port `5431` and Redis Stack on port `6379` (RedisInsight
 cd server
 npm install
 cp .env.sample .env
-# fill in your values
-npx prisma migrate dev
 npm run dev
 ```
 
-Server → `http://localhost:5000`  
+Server → `http://localhost:5000`
 Swagger → `http://localhost:5000/api-docs`
 
 ### 4. Client setup
@@ -239,10 +241,12 @@ Client → `http://localhost:5173`
 
 ### `/server/.env`
 
-- Create a `.env` file inside the **server** directory.
-- Use the provided `.env.sample` file as a reference:
-- Copy the configuration into your `.env` file.
-- Replace all placeholder values (`<...>`) with your actual credentials and API keys.
+```env
+MONGO_URI=mongodb://localhost:27017/auth-db
+REDIS_URL=redis://localhost:6379
+JWT_ACCESS_SECRET=your_secret
+JWT_REFRESH_SECRET=your_secret
+```
 
 ### `/client/.env`
 
@@ -256,27 +260,27 @@ VITE_BACKEND_URL=http://localhost:5000/api/v1
 
 ### Auth — `/api/v1/auth`
 
-| Method | Endpoint            | Access   | Description                                    |
-|--------|---------------------|----------|------------------------------------------------|
-| POST   | `/register`         | Public   | Register, send verification email, issue tokens|
-| POST   | `/login`            | Public   | Login, issue tokens                            |
-| POST   | `/logout`           | 🔒 Auth  | Blacklist refresh token, delete session        |
-| GET    | `/verify-email`     | Public   | Verify email from link                         |
-| POST   | `/forgot-password`  | Public   | Send OTP to email                              |
-| POST   | `/reset-password`   | Public   | Verify OTP + set new password                  |
-| POST   | `/refresh-token`    | Public   | Issue new access token from refresh token      |
-| GET    | `/google`           | Public   | Redirect to Google OAuth                       |
-| GET    | `/google/callback`  | Public   | Google OAuth callback                          |
-| GET    | `/github`           | Public   | Redirect to GitHub OAuth                       |
-| GET    | `/github/callback`  | Public   | GitHub OAuth callback                          |
+| Method | Endpoint           | Access  | Description                                     |
+| ------ | ------------------ | ------- | ----------------------------------------------- |
+| POST   | `/register`        | Public  | Register, send verification email, issue tokens |
+| POST   | `/login`           | Public  | Login, issue tokens                             |
+| POST   | `/logout`          | 🔒 Auth | Blacklist refresh token, delete session         |
+| GET    | `/verify-email`    | Public  | Verify email from link                          |
+| POST   | `/forgot-password` | Public  | Send OTP to email                               |
+| POST   | `/reset-password`  | Public  | Verify OTP + set new password                   |
+| POST   | `/refresh-token`   | Public  | Issue new access token from refresh token       |
+| GET    | `/google`          | Public  | Redirect to Google OAuth                        |
+| GET    | `/google/callback` | Public  | Google OAuth callback                           |
+| GET    | `/github`          | Public  | Redirect to GitHub OAuth                        |
+| GET    | `/github/callback` | Public  | GitHub OAuth callback                           |
 
 ### Users — `/api/v1/users`
 
-| Method | Endpoint          | Access  | Description                         |
-|--------|-------------------|---------|-------------------------------------|
-| GET    | `/profile`        | 🔒 Auth | Get authenticated user profile      |
-| POST   | `/verify-email`   | 🔒 Auth | Resend email verification link      |
-| PATCH  | `/change-password`| 🔒 Auth | Change password (validates old one) |
+| Method | Endpoint           | Access  | Description                    |
+| ------ | ------------------ | ------- | ------------------------------ |
+| GET    | `/profile`         | 🔒 Auth | Get authenticated user profile |
+| POST   | `/verify-email`    | 🔒 Auth | Resend email verification link |
+| PATCH  | `/change-password` | 🔒 Auth | Change password                |
 
 ---
 
@@ -377,10 +381,10 @@ Forgot Password
 
 ## 🤝 Contributing
 
-Contributions are welcome and appreciated!  
+Contributions are welcome and appreciated!
 
 ---
 
 ## 📄 License
 
-[MIT](LICENSE)
+MIT
