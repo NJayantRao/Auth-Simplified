@@ -57,7 +57,7 @@ const features = [
     icon: Layers,
     title: "Role-Based Access",
     description:
-      "User and Admin roles via Prisma enum. Route-level RBAC middleware — protect any endpoint with a one-line guard.",
+      "User and Admin roles. Route-level RBAC middleware — protect any endpoint with a one-line guard.",
     badge: "Core",
   },
   {
@@ -82,8 +82,8 @@ const stack = [
   "Express 5",
   "JWT",
   "Redis",
-  "Prisma 7",
-  "PostgreSQL",
+  "Mongoose",
+  "MongoDB",
   "Bcrypt",
   "Arctic",
   "React 19",
@@ -162,6 +162,6 @@ const badgeColors: Record<string, string> = {
 
 const GITHUB_URL = "https://github.com/NJayantRao/Auth-Simplified";
 
-const DEGIT_CMD = "npx degit NJayantRao/Auth-Simplified/auth-pern-stack my-app";
+const DEGIT_CMD = "npx degit NJayantRao/Auth-Simplified/auth-mern-stack my-app";
 
 export { features, stack, flows, steps, GITHUB_URL, DEGIT_CMD, badgeColors };
