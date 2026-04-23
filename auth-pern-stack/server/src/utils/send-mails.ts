@@ -1,6 +1,7 @@
 import { registrationMail } from "../emails/registration-mail.js";
 import { otpMail } from "../emails/send-otp.js";
 import { verificationMail } from "../emails/verify-email.js";
+import { oauthWelcomeMail } from "../emails/oauth-welcome-mail.js";
 import { transporter } from "../lib/nodemailer.js";
 
 const sendRegistrationMail = async (
@@ -59,4 +60,34 @@ const sendOtpMail = async (email: string, otp: string) => {
   }
 };
 
-export { sendRegistrationMail, sendVerificationMail, sendOtpMail };
+const sendOauthWelcomeMail = async (
+  username: string,
+  email: string,
+  provider: string,
+  dashboardLink: string
+) => {
+  try {
+    const { html, plainText } = await oauthWelcomeMail(
+      username,
+      provider,
+      dashboardLink
+    );
+    const info = await transporter.sendMail({
+      from: '"Auth System Team" <auth-system@gmail.com>',
+      to: email,
+      subject: `Welcome to Auth System - ${provider} Login`,
+      text: plainText,
+      html: html,
+    });
+    // console.log("Message sent: %s", info.messageId);
+  } catch (err) {
+    console.error("Error while sending mail:", err);
+  }
+};
+
+export {
+  sendRegistrationMail,
+  sendVerificationMail,
+  sendOtpMail,
+  sendOauthWelcomeMail,
+};

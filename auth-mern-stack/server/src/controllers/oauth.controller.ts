@@ -15,6 +15,7 @@ import crypto from "crypto";
 import { ENV } from "../lib/env.js";
 import mongoose from "mongoose";
 import ApiError from "../utils/api-error.js";
+import { sendOauthWelcomeMail } from "../utils/send-mails.js";
 
 /**
  * @route POST /auth/google
@@ -145,6 +146,13 @@ export const getGoogleLoginCallback = AsyncHandler(
       await redisClient.del(`oauth:google-state:${state}`);
       res.cookie("accessToken", accessToken, accessTokenOptions);
       res.cookie("refreshToken", refreshToken, refreshTokenOptions);
+
+      sendOauthWelcomeMail(
+        user?.name,
+        user?.email,
+        "Google",
+        `${ENV.FRONTEND_URL}/dashboard`
+      );
 
       // 6 Redirect to frontend dashboard
       return res.redirect(`${ENV.FRONTEND_URL}/dashboard`);
@@ -303,6 +311,12 @@ export const getGithubLoginCallback = AsyncHandler(
       await redisClient.del(`oauth:github-state:${state}`);
       res.cookie("accessToken", loginAccessToken, accessTokenOptions);
       res.cookie("refreshToken", refreshToken, refreshTokenOptions);
+      sendOauthWelcomeMail(
+        user?.name,
+        user?.email,
+        "GitHub",
+        `${ENV.FRONTEND_URL}/dashboard`
+      );
 
       return res.redirect(`${ENV.FRONTEND_URL}/dashboard`);
     } catch (error) {

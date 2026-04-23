@@ -2,7 +2,7 @@ import ApiError from "../utils/api-error.js";
 
 const errorMiddleware = async (err: any, req: any, res: any, next: any) => {
   if (err instanceof ApiError) {
-    console.error("[ERROR]:",err);
+    console.error("[ERROR]:", err);
     return res.status(err.statusCode).json(err);
   }
   if (err?.name === "ZodError") {
