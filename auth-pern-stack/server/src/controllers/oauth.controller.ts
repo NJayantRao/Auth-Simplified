@@ -69,7 +69,6 @@ export const getGoogleLoginCallback = AsyncHandler(
       const email = claims.email;
 
       // 1 Check if OAuth account exists
-
       let oauthAccount = await prisma.oAuthProvider.findUnique({
         where: {
           providerName_providerUserId: {
@@ -115,6 +114,14 @@ export const getGoogleLoginCallback = AsyncHandler(
 
           return existingUser;
         });
+
+        // Send welcome email only for new users
+        sendOauthWelcomeMail(
+          user?.name,
+          user?.email,
+          "Google",
+          `${ENV.FRONTEND_URL}/dashboard`
+        );
       }
 
       if (!user)
@@ -152,12 +159,6 @@ export const getGoogleLoginCallback = AsyncHandler(
       await redisClient.del(`oauth:google-state:${state}`);
       res.cookie("accessToken", accessToken, accessTokenOptions);
       res.cookie("refreshToken", refreshToken, refreshTokenOptions);
-      sendOauthWelcomeMail(
-        user?.name,
-        user?.email,
-        "Google",
-        `${ENV.FRONTEND_URL}/dashboard`
-      );
 
       //  Redirect to frontend dashboard
       return res.redirect(`${ENV.FRONTEND_URL}/dashboard`);
@@ -284,6 +285,14 @@ export const getGithubLoginCallback = AsyncHandler(
 
           return existingUser;
         });
+
+        // Send welcome email only for new users
+        sendOauthWelcomeMail(
+          user?.name,
+          user?.email,
+          "GitHub",
+          `${ENV.FRONTEND_URL}/dashboard`
+        );
       }
 
       if (!user) {
@@ -318,12 +327,6 @@ export const getGithubLoginCallback = AsyncHandler(
       await redisClient.del(`oauth:github-state:${state}`);
       res.cookie("accessToken", loginAccessToken, accessTokenOptions);
       res.cookie("refreshToken", refreshToken, refreshTokenOptions);
-      sendOauthWelcomeMail(
-        user?.name,
-        user?.email,
-        "GitHub",
-        `${ENV.FRONTEND_URL}/dashboard`
-      );
 
       return res.redirect(`${ENV.FRONTEND_URL}/dashboard`);
     } catch (error) {

@@ -105,6 +105,13 @@ export const getGoogleLoginCallback = AsyncHandler(
           session.endSession();
 
           user = existingUser;
+
+          sendOauthWelcomeMail(
+            user?.name,
+            user?.email,
+            "Google",
+            `${ENV.FRONTEND_URL}/dashboard`
+          );
         } catch (error) {
           await session.abortTransaction();
           session.endSession();
@@ -146,13 +153,6 @@ export const getGoogleLoginCallback = AsyncHandler(
       await redisClient.del(`oauth:google-state:${state}`);
       res.cookie("accessToken", accessToken, accessTokenOptions);
       res.cookie("refreshToken", refreshToken, refreshTokenOptions);
-
-      sendOauthWelcomeMail(
-        user?.name,
-        user?.email,
-        "Google",
-        `${ENV.FRONTEND_URL}/dashboard`
-      );
 
       // 6 Redirect to frontend dashboard
       return res.redirect(`${ENV.FRONTEND_URL}/dashboard`);
@@ -272,6 +272,13 @@ export const getGithubLoginCallback = AsyncHandler(
           session.endSession();
 
           user = existingUser;
+
+          sendOauthWelcomeMail(
+            user?.name,
+            user?.email,
+            "GitHub",
+            `${ENV.FRONTEND_URL}/dashboard`
+          );
         } catch (error) {
           await session.abortTransaction();
           session.endSession();
@@ -311,12 +318,6 @@ export const getGithubLoginCallback = AsyncHandler(
       await redisClient.del(`oauth:github-state:${state}`);
       res.cookie("accessToken", loginAccessToken, accessTokenOptions);
       res.cookie("refreshToken", refreshToken, refreshTokenOptions);
-      sendOauthWelcomeMail(
-        user?.name,
-        user?.email,
-        "GitHub",
-        `${ENV.FRONTEND_URL}/dashboard`
-      );
 
       return res.redirect(`${ENV.FRONTEND_URL}/dashboard`);
     } catch (error) {
