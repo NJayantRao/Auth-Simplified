@@ -147,7 +147,7 @@ const SignUp = () => {
                       className="h-10 gap-2 font-medium"
                       onClick={() => {
                         window.location.href =
-                          "http://localhost:5000/api/v1/auth/google";
+                          `${import.meta.env.VITE_BACKEND_URL}auth/google`;
                       }}
                     >
                       <FcGoogle className="size-4" />

@@ -14,6 +14,7 @@ import { github } from "../utils/github.js";
 import crypto from "crypto";
 import { ENV } from "../lib/env.js";
 import mongoose from "mongoose";
+import ApiError from "../utils/api-error.js";
 
 /**
  * @route POST /auth/google
@@ -69,8 +70,6 @@ export const getGoogleLoginCallback = AsyncHandler(
       const name = claims.name;
       const email = claims.email;
 
-      // 1 Check if OAuth account exists
-
       let oauthAccount = await OAuthProvider.findOne({
         providerName: "GOOGLE",
         providerUserId: googleUserId,
@@ -108,7 +107,7 @@ export const getGoogleLoginCallback = AsyncHandler(
         } catch (error) {
           await session.abortTransaction();
           session.endSession();
-          throw error;
+          throw new ApiError(500, "User creation failed");
         }
       }
 
@@ -117,7 +116,6 @@ export const getGoogleLoginCallback = AsyncHandler(
           `${ENV.FRONTEND_URL}/sign-in?error=user_creation_failed`
         );
 
-      // 5 Generate JWT like normal login
       const sessionId = crypto.randomBytes(16).toString("hex");
       const payload: IPayload = {
         id: user.id,

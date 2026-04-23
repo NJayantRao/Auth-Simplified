@@ -8,6 +8,7 @@ import { rateLimiter } from "./middlewares/rate-limit-middleware.js";
 import { userRouter } from "./routes/user.routes.js";
 import cors from "cors";
 import { ENV } from "./lib/env.js";
+import errorMiddleware from "./middlewares/error-middleware.js";
 
 const app = express();
 
@@ -29,5 +30,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("", rootRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
+
+app.use(errorMiddleware);
 
 export default app;

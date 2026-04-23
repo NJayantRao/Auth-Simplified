@@ -12,17 +12,15 @@ export function validateData(schema: ZodSchema) {
         const firstError = error.issues[0];
 
         if (!firstError) {
-          return res
-            .status(400)
-            .json(new ApiError(400, "Invalid request data"));
+          throw new ApiError(400, "Invalid request data");
         }
 
         const errorMessage = firstError.message;
 
-        return res.status(400).json(new ApiError(400, errorMessage));
+        throw new ApiError(400, errorMessage);
       }
 
-      return res.status(500).json(new ApiError(500, "Internal Server Error"));
+      throw new ApiError(500, "Internal Server Error");
     }
   };
 }

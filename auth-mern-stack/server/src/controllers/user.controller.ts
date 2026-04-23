@@ -17,7 +17,7 @@ const verifyUserEmail = AsyncHandler(async (req: any, res: any) => {
   const user = await User.findById(id);
 
   if (!user) {
-    return res.status(404).json(new ApiError(404, "User not found"));
+    throw new ApiError(404, "User not found");
   }
 
   const verificationToken = crypto.randomBytes(32).toString("hex");
@@ -60,7 +60,7 @@ const getUserProfile = AsyncHandler(async (req: any, res: any) => {
     .lean();
 
   if (!user) {
-    return res.status(401).json(new ApiResponse(401, "Invalid Credentials"));
+    throw new ApiError(401, "Invalid Credentials");
   }
 
   const sanitizedUser = {
@@ -94,37 +94,29 @@ const changePassword = AsyncHandler(async (req: any, res: any) => {
   const { id } = req.user;
 
   if (!oldPassword || !newPassword) {
-    return res.status(400).json(new ApiError(400, "All fields are required"));
+    throw new ApiError(400, "All fields are required");
   }
 
   if (oldPassword === newPassword) {
-    return res
-      .status(400)
-      .json(
-        new ApiError(400, "New password must be different from old password")
-      );
+    throw new ApiError(400, "New password must be different from old password");
   }
 
   const user = await User.findById(id).select("+password");
 
   if (!user) {
-    return res.status(401).json(new ApiError(401, "Invalid Credentials"));
+    throw new ApiError(401, "Invalid Credentials");
   }
   if (!user.password) {
-    return res
-      .status(400)
-      .json(
-        new ApiError(
-          400,
-          "User registered via OAuth, password change not allowed"
-        )
-      );
+    throw new ApiError(
+      400,
+      "User registered via OAuth, password change not allowed"
+    );
   }
 
   const isMatched = await comparePassword(oldPassword, user.password);
 
   if (!isMatched) {
-    return res.status(400).json(new ApiError(400, "Password is incorrect"));
+    throw new ApiError(400, "Password is incorrect");
   }
 
   user.password = newPassword;

@@ -19,14 +19,10 @@ const authMiddleware = async (req: any, res: any, next: any) => {
         `active-session:${decoded.id}`
       );
       if (!activeSession || activeSession !== decoded.sessionId) {
-        return res
-          .status(401)
-          .json(
-            new ApiError(
-              401,
-              "Session expired. You logged in from another device."
-            )
-          );
+        throw new ApiError(
+          401,
+          "Session expired. You logged in from another device."
+        );
       }
     }
 
@@ -35,9 +31,9 @@ const authMiddleware = async (req: any, res: any, next: any) => {
   } catch (error) {
     console.log(error);
     if (error instanceof jwt.TokenExpiredError) {
-      return res.status(401).json(new ApiError(401, "Token expired"));
+      throw new ApiError(401, "Token expired");
     }
-    return res.status(401).json(new ApiError(401, "Unauthorized request"));
+    throw new ApiError(401, "Unauthorized request");
   }
 };
 
@@ -52,11 +48,11 @@ const generateRefreshToken = (userData: IPayload) => {
 const authorizeAdmin = async (req: any, res: any, next: any) => {
   try {
     if (req?.user?.role !== "ADMIN") {
-      return res.status(403).json(new ApiError(403, "Forbidden Request"));
+      throw new ApiError(403, "Forbidden Request");
     }
     next();
   } catch (error) {
-    return res.status(403).json(new ApiError(403, "Forbidden Request"));
+    throw new ApiError(403, "Forbidden Request");
   }
 };
 

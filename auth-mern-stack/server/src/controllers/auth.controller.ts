@@ -26,28 +26,28 @@ const registerUser = AsyncHandler(async (req: any, res: any) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
-    return res.status(400).json(new ApiError(400, "All fields are required"));
+    throw new ApiError(400, "All fields are required");
   }
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    return res.status(400).json(new ApiError(400, "User already exists"));
+    throw new ApiError(400, "User already exists");
   }
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const createdUser = await new User({
+    const user = await new User({
       name,
       email,
       password,
     }).save({ session });
 
     await new OAuthProvider({
-      userId: createdUser._id,
+      userId: user._id,
       providerName: "LOCAL",
-      providerUserId: createdUser.id,
+      providerUserId: user.id,
     }).save({ session });
 
     await session.commitTransaction();
@@ -55,9 +55,9 @@ const registerUser = AsyncHandler(async (req: any, res: any) => {
 
     const sessionId = crypto.randomBytes(16).toString("hex");
     const payload: IPayload = {
-      id: createdUser.id,
-      email: createdUser.email,
-      role: createdUser.role,
+      id: user.id,
+      email: user.email,
+      role: user.role,
       sessionId,
     };
 
@@ -65,14 +65,14 @@ const registerUser = AsyncHandler(async (req: any, res: any) => {
     const refreshToken = generateRefreshToken(payload);
 
     await redisClient.set(
-      `refresh-token:${createdUser.id}`,
+      `refresh-token:${user.id}`,
       refreshToken,
       "EX",
       7 * 24 * 60 * 60
     );
 
     await redisClient.set(
-      `active-session:${createdUser.id}`,
+      `active-session:${user.id}`,
       sessionId,
       "EX",
       7 * 24 * 60 * 60
@@ -80,12 +80,12 @@ const registerUser = AsyncHandler(async (req: any, res: any) => {
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
     await redisClient.set(
-      `verify-token:${createdUser.id}`,
+      `verify-token:${user.id}`,
       verificationToken,
       "EX",
       10 * 60
     );
-    const verifyLink = `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email?id=${createdUser.id}&verifyToken=${verificationToken}`;
+    const verifyLink = `${req.protocol}://${req.get("host")}/api/v1/auth/verify-email?id=${user.id}&verifyToken=${verificationToken}`;
 
     res.cookie("accessToken", accessToken, accessTokenOptions);
     res.cookie("refreshToken", refreshToken, refreshTokenOptions);
@@ -96,19 +96,19 @@ const registerUser = AsyncHandler(async (req: any, res: any) => {
         accessToken,
         refreshToken,
         user: {
-          id: createdUser.id,
-          email: createdUser.email,
-          role: createdUser.role,
-          isVerified: createdUser.isVerified,
-          createdAt: createdUser.createdAt,
-          updatedAt: createdUser.updatedAt,
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          isVerified: user.isVerified,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
         },
       })
     );
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    throw error;
+    throw new ApiError(500, "Registration failed");
   }
 });
 /**
@@ -120,22 +120,20 @@ const loginUser = AsyncHandler(async (req: any, res: any) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json(new ApiError(400, "All fields are required"));
+    throw new ApiError(400, "All fields are required");
   }
 
   const user = await User.findOne({ email }).select("+password");
   if (!user) {
-    return res.status(401).json(new ApiError(401, "Invalid Credentials"));
+    throw new ApiError(401, "Invalid Credentials");
   }
   if (!user.password) {
-    return res
-      .status(400)
-      .json(new ApiError(400, "Please login with your OAuth provider"));
+    throw new ApiError(400, "Please login with your OAuth provider");
   }
 
   const isMatched = await comparePassword(password, user.password);
   if (!isMatched) {
-    return res.status(401).json(new ApiError(401, "Invalid Credentials"));
+    throw new ApiError(401, "Invalid Credentials");
   }
 
   const sessionId = crypto.randomBytes(16).toString("hex");
@@ -192,7 +190,7 @@ const logoutUser = AsyncHandler(async (req: any, res: any) => {
   const refreshToken = req?.cookies?.refreshToken;
   const storedRefreshToken = await redisClient.get(`refresh-token:${id}`);
   if (!refreshToken || refreshToken !== storedRefreshToken) {
-    return res.status(401).json(new ApiError(401, "Unauthorized request"));
+    throw new ApiError(401, "Unauthorized request");
   }
 
   //black list refresh token
@@ -223,17 +221,17 @@ const verifyEmail = AsyncHandler(async (req: any, res: any) => {
   const storedVerifyToken = await redisClient.get(`verify-token:${id}`);
 
   if (verifyToken !== storedVerifyToken) {
-    return res.status(400).json(new ApiError(400, "Email verification failed"));
+    throw new ApiError(400, "Email verification failed");
   }
 
   const user = await User.findByIdAndUpdate(
     id,
     { isVerified: true },
-    { new: true }
+    { new: true, runValidators: true }
   );
 
   if (!user) {
-    return res.status(404).json(new ApiError(404, "User not found"));
+    throw new ApiError(400, "Email verification failed");
   }
 
   await redisClient.del(`verify-token:${user.id}`);
@@ -250,7 +248,7 @@ const forgotPassword = AsyncHandler(async (req: any, res: any) => {
   const { email } = req.body;
 
   if (!email) {
-    return res.status(400).json(new ApiError(400, "All fields are required"));
+    throw new ApiError(400, "All fields are required");
   }
 
   const isExistingUser = await User.findOne({ email });
@@ -284,7 +282,7 @@ const resetPassword = AsyncHandler(async (req: any, res: any) => {
   const { email, otp, newPassword } = req.body;
 
   if (!email || !otp || !newPassword) {
-    return res.status(400).json(new ApiError(400, "All fields are required"));
+    throw new ApiError(400, "All fields are required");
   }
 
   const user = await User.findOne({ email }).select("+password");
@@ -292,7 +290,7 @@ const resetPassword = AsyncHandler(async (req: any, res: any) => {
 
   if (!user || !storedOtp || otp !== storedOtp) {
     await redisClient.del(`verify-otp:${email}`);
-    return res.status(400).json(new ApiError(400, "Invalid email or OTP"));
+    throw new ApiError(400, "Invalid email or OTP");
   }
 
   user.password = newPassword;
@@ -317,13 +315,13 @@ const refreshAccessToken = async (req: any, res: any) => {
       req?.cookies?.refreshToken || authorization?.split(" ")[1];
 
     if (!refreshToken) {
-      return res.status(401).json(new ApiError(401, "Unauthorized request"));
+      throw new ApiError(401, "Unauthorized request");
     }
     const blacklisted = await redisClient.get(
       `blackList-token:${refreshToken}`
     );
     if (blacklisted === "BLOCKED") {
-      return res.status(401).json(new ApiError(401, "Unauthorized request"));
+      throw new ApiError(401, "Unauthorized request");
     }
     const decoded = jwt.verify(
       refreshToken,
@@ -334,21 +332,15 @@ const refreshAccessToken = async (req: any, res: any) => {
     const storedRefreshToken = await redisClient.get(`refresh-token:${id}`);
 
     if (!storedRefreshToken || storedRefreshToken !== refreshToken) {
-      return res
-        .status(401)
-        .json(new ApiError(401, "Session expired. Please login again."));
+      throw new ApiError(401, "Session expired. Please login again.");
     }
 
     const activeSessionId = await redisClient.get(`active-session:${id}`);
     if (!activeSessionId || activeSessionId !== sessionId) {
-      return res
-        .status(401)
-        .json(
-          new ApiError(
-            401,
-            "Session expired. You logged in from another device."
-          )
-        );
+      throw new ApiError(
+        401,
+        "Session expired. You logged in from another device."
+      );
     }
 
     const accessToken = jwt.sign(
@@ -371,11 +363,9 @@ const refreshAccessToken = async (req: any, res: any) => {
     console.error(error);
 
     if (error.name === "TokenExpiredError") {
-      return res
-        .status(401)
-        .json(new ApiError(401, "Session expired, Please login again"));
+      throw new ApiError(401, "Session expired. Please login again.");
     }
-    return res.status(401).json(new ApiError(401, "Unauthorized request"));
+    throw new ApiError(401, "Unauthorized request");
   }
 };
 
