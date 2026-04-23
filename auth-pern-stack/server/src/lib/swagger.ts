@@ -1,4 +1,5 @@
 import swaggerAutogen from "swagger-autogen";
+import { ENV } from "./env.js";
 
 const doc = {
   info: {
@@ -6,7 +7,7 @@ const doc = {
     description:
       "A simple authentication system built with Node.js, Express, and Prisma.",
   },
-  host: "localhost:5000",
+  host: `${ENV.BACKEND_URL}`,
 };
 
 const outputFile = "../../swagger-output.json";
