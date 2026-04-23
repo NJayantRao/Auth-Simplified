@@ -3,7 +3,6 @@ import ApiError from "../utils/api-error.js";
 import type { IPayload } from "../types/jwt.types.js";
 import { ENV } from "../lib/env.js";
 import { redisClient } from "../lib/redis.js";
-import { prisma } from "../lib/prisma.js";
 import { Role } from "@prisma/client";
 
 const authMiddleware = async (req: any, res: any, next: any) => {
@@ -12,7 +11,7 @@ const authMiddleware = async (req: any, res: any, next: any) => {
     const token = req?.cookies?.accessToken || authorization?.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json(new ApiError(401, "Unauthorized request"));
+      throw new ApiError(401, "Unauthorized request");
     }
     const decoded = jwt.verify(token, ENV.ACCESS_TOKEN_SECRET) as IPayload;
 
@@ -21,25 +20,20 @@ const authMiddleware = async (req: any, res: any, next: any) => {
         `active-session:${decoded.id}`
       );
       if (!activeSession || activeSession !== decoded.sessionId) {
-        return res
-          .status(401)
-          .json(
-            new ApiError(
-              401,
-              "Session expired. You logged in from another device."
-            )
-          );
+        throw new ApiError(
+          401,
+          "Session expired. You logged in from another device."
+        );
       }
     }
 
     req.user = decoded;
     next();
   } catch (error) {
-    console.log(error);
     if (error instanceof jwt.TokenExpiredError) {
-      return res.status(401).json(new ApiError(401, "Token expired"));
+      throw new ApiError(401, "Token expired");
     }
-    return res.status(401).json(new ApiError(401, "Unauthorized request"));
+    throw new ApiError(401, "Unauthorized request");
   }
 };
 
@@ -54,11 +48,11 @@ const generateRefreshToken = (userData: IPayload) => {
 const authorizeAdmin = async (req: any, res: any, next: any) => {
   try {
     if (req?.user?.role !== Role.Admin) {
-      return res.status(403).json(new ApiError(403, "Forbidden Request"));
+      throw new ApiError(403, "Forbidden Request");
     }
     next();
   } catch (error) {
-    return res.status(403).json(new ApiError(403, "Forbidden Request"));
+    throw new ApiError(403, "Forbidden Request");
   }
 };
 

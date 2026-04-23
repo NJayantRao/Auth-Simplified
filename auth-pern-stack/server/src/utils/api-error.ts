@@ -10,9 +10,8 @@ class ApiError extends Error {
     this.success = false;
     this.message = message;
     this.data = null;
+    Error.captureStackTrace(this, this.constructor);
   }
 }
 
 export default ApiError;
-
-//TO-DO: learn about error-stack

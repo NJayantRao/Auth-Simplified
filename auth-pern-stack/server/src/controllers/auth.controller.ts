@@ -25,13 +25,13 @@ const registerUser = AsyncHandler(async (req: any, res: any) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
-    return res.status(400).json(new ApiError(400, "All fields are required"));
+    throw new ApiError(400, "All fields are required");
   }
 
   // check if user already exists
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
-    return res.status(400).json(new ApiError(400, "User already exists"));
+    throw new ApiError(400, "User already exists");
   }
 
   //hash password
@@ -127,7 +127,7 @@ const loginUser = AsyncHandler(async (req: any, res: any) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json(new ApiError(400, "All fields are required"));
+    throw new ApiError(400, "All fields are required");
   }
 
   //check user exists or not
@@ -144,17 +144,15 @@ const loginUser = AsyncHandler(async (req: any, res: any) => {
     },
   });
   if (!user) {
-    return res.status(401).json(new ApiError(401, "Invalid Credentials"));
+    throw new ApiError(401, "Invalid Credentials");
   }
   if (!user.password) {
-    return res
-      .status(400)
-      .json(new ApiError(400, "Please login with your OAuth provider"));
+    throw new ApiError(400, "Please login with your OAuth provider");
   }
   //compare password
   const isMatched = await comparePassword(password, user.password);
   if (!isMatched) {
-    return res.status(401).json(new ApiError(401, "Invalid Credentials"));
+    throw new ApiError(401, "Invalid Credentials");
   }
 
   //generate access & refresh tokens
@@ -215,7 +213,7 @@ const logoutUser = AsyncHandler(async (req: any, res: any) => {
   const refreshToken = req?.cookies?.refreshToken;
   const storedRefreshToken = await redisClient.get(`refresh-token:${id}`);
   if (!refreshToken || refreshToken !== storedRefreshToken) {
-    return res.status(401).json(new ApiError(401, "Unauthorized request"));
+    throw new ApiError(401, "Unauthorized request");
   }
 
   //black list refresh token
@@ -246,7 +244,7 @@ const verifyEmail = AsyncHandler(async (req: any, res: any) => {
   const storedVerifyToken = await redisClient.get(`verify-token:${id}`);
 
   if (verifyToken !== storedVerifyToken) {
-    return res.status(400).json(new ApiError(400, "Email verification failed"));
+    throw new ApiError(400, "Email verification failed");
   }
 
   const user = await prisma.user.update({
@@ -268,8 +266,9 @@ const forgotPassword = AsyncHandler(async (req: any, res: any) => {
   const { email } = req.body;
 
   if (!email) {
-    return res.status(400).json(new ApiError(400, "All fields are required"));
+    throw new ApiError(400, "All fields are required");
   }
+
   //if not existing user
   const isExistingUser = await prisma.user.findUnique({
     where: {
@@ -307,7 +306,7 @@ const resetPassword = AsyncHandler(async (req: any, res: any) => {
   const { email, otp, newPassword } = req.body;
 
   if (!email || !otp || !newPassword) {
-    return res.status(400).json(new ApiError(400, "All fields are required"));
+    throw new ApiError(400, "All fields are required");
   }
   //if not existing user
   const isExistingUser = await prisma.user.findUnique({
@@ -320,7 +319,7 @@ const resetPassword = AsyncHandler(async (req: any, res: any) => {
 
   if (!isExistingUser || !storedOtp || otp !== storedOtp) {
     await redisClient.del(`verify-otp:${email}`);
-    return res.status(400).json(new ApiError(400, "Invalid email or OTP"));
+    throw new ApiError(400, "Invalid email or OTP");
   }
 
   //hash new password
@@ -343,20 +342,20 @@ const resetPassword = AsyncHandler(async (req: any, res: any) => {
  * @desc Refresh access token controller
  * @access public
  */
-const refreshAccessToken = async (req: any, res: any) => {
+const refreshAccessToken = AsyncHandler(async (req: any, res: any) => {
   try {
     const authorization = req?.headers?.authorization;
     const refreshToken =
       req?.cookies?.refreshToken || authorization?.split(" ")[1];
 
     if (!refreshToken) {
-      return res.status(401).json(new ApiError(401, "Unauthorized request"));
+      throw new ApiError(401, "Unauthorized request");
     }
     const blacklisted = await redisClient.get(
       `blackList-token:${refreshToken}`
     );
     if (blacklisted === "BLOCKED") {
-      return res.status(401).json(new ApiError(401, "Unauthorized request"));
+      throw new ApiError(401, "Unauthorized request");
     }
     const decoded = jwt.verify(
       refreshToken,
@@ -367,21 +366,15 @@ const refreshAccessToken = async (req: any, res: any) => {
     const storedRefreshToken = await redisClient.get(`refresh-token:${id}`);
 
     if (!storedRefreshToken || storedRefreshToken !== refreshToken) {
-      return res
-        .status(401)
-        .json(new ApiError(401, "Session expired. Please login again."));
+      throw new ApiError(401, "Session expired. Please login again.");
     }
 
     const activeSessionId = await redisClient.get(`active-session:${id}`);
     if (!activeSessionId || activeSessionId !== sessionId) {
-      return res
-        .status(401)
-        .json(
-          new ApiError(
-            401,
-            "Session expired. You logged in from another device."
-          )
-        );
+      throw new ApiError(
+        401,
+        "Session expired. You logged in from another device."
+      );
     }
 
     const accessToken = jwt.sign(
@@ -393,24 +386,18 @@ const refreshAccessToken = async (req: any, res: any) => {
     );
 
     res.cookie("accessToken", accessToken, accessTokenOptions);
-    // console.log("refresh token called");
-
     return res.status(200).json(
       new ApiResponse(200, "Access token refreshed successfully", {
         accessToken,
       })
     );
   } catch (error: any) {
-    console.error(error);
-
     if (error.name === "TokenExpiredError") {
-      return res
-        .status(401)
-        .json(new ApiError(401, "Session expired, Please login again"));
+      throw new ApiError(401, "Session expired, Please login again");
     }
-    return res.status(401).json(new ApiError(401, "Unauthorized request"));
+    throw new ApiError(401, "Unauthorized request");
   }
-};
+});
 
 export {
   registerUser,
