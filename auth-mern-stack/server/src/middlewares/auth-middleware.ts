@@ -10,7 +10,7 @@ const authMiddleware = async (req: any, res: any, next: any) => {
     const token = req?.cookies?.accessToken || authorization?.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json(new ApiError(401, "Unauthorized request"));
+      return res.status(401).json(new ApiError(401, "Token expired"));
     }
     const decoded = jwt.verify(token, ENV.ACCESS_TOKEN_SECRET) as IPayload;
 
@@ -19,21 +19,20 @@ const authMiddleware = async (req: any, res: any, next: any) => {
         `active-session:${decoded.id}`
       );
       if (!activeSession || activeSession !== decoded.sessionId) {
-        throw new ApiError(
+        return res.status(401).json(new ApiError(
           401,
           "Session expired. You logged in from another device."
-        );
+        ));
       }
     }
 
     req.user = decoded;
     next();
   } catch (error) {
-    console.log(error);
     if (error instanceof jwt.TokenExpiredError) {
-      throw new ApiError(401, "Token expired");
+      return res.status(401).json(new ApiError(401, "Token expired"));
     }
-    throw new ApiError(401, "Unauthorized request");
+    return res.status(401).json(new ApiError(401, "Unauthorized request"));
   }
 };
 
@@ -52,7 +51,7 @@ const authorizeAdmin = async (req: any, res: any, next: any) => {
     }
     next();
   } catch (error) {
-    throw new ApiError(403, "Forbidden Request");
+    return res.status(403).json(new ApiError(403, "Forbidden Request"));
   }
 };
 
